@@ -52,8 +52,6 @@ class UsineAGASE(wx.App):
             #if query.count() == 1:
             #    EXERCICE_EN_COURS = query.first()
             
-            #config.PARAMETRES_ASSOCIATION.Chargement()
-
             return 1
 
 usineagase = UsineAGASE(0)

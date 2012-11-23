@@ -82,7 +82,8 @@ class GestionInventaires(wx.Panel):
 
     def OnAjoutInventaire(self, event):
         #dialog_inventaire = wx.Dialog(self, title=u"Nouvel inventaire")
-        fiche_inventaire = FicheInventaire(self)
+        fiche_inventaire = FicheInventaire(self.GetParent())
+        fiche_inventaire.Show()
         
         '''dialog_inventaire.Fit()
         dialog_inventaire.ShowModal()

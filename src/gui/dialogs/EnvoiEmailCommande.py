@@ -3,7 +3,8 @@
 
 from datetime import datetime
 import wx
-import config
+
+from model.model import Parametre
 
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEBase import MIMEBase
@@ -99,7 +100,7 @@ class EnvoiEmailCommande(wx.Dialog):
 
             mail = MIMEMultipart()
 
-            mail['From'] = config.PARAMETRES_ASSOCIATION.LoginSMTP
+            mail['From'] = Parametre.get(nom="SMTP_login")
             mail['To'] = destinataire
             mail['Subject'] = "%s" % Header(sujet, 'utf-8')
 
@@ -111,18 +112,18 @@ class EnvoiEmailCommande(wx.Dialog):
 
             if smtp.TestConnectionInternet():
                 try:
-                    smtp.SetServeur(config.PARAMETRES_ASSOCIATION.ServeurSMTP,
-                                    int(config.PARAMETRES_ASSOCIATION.ServeurSMTPPort),
-                                    config.PARAMETRES_ASSOCIATION.ServeurSecurite)
-
-                    smtp.SetLogin(config.PARAMETRES_ASSOCIATION.LoginSMTP,
-                                  config.PARAMETRES_ASSOCIATION.MotDePasseSMTP)
-
+                    smtp.SetServeur(Parametre.get(nom="SMTP_serveur"),
+                                    int(Parametre.get(nom="SMTP_serveurport")),
+                                    Parametre.get(nom="SMTP_serveursecurite"))
+    
+                    smtp.SetLogin(Parametre.get(nom="SMTP_login"),
+                                  Parametre.get(nom="SMTP_motdepasse"))
+    
                     serveur = smtp.ConnectionServeur()
-                    serveur.sendmail(config.PARAMETRES_ASSOCIATION.LoginSMTP,
-                                     destinataire,
+                    serveur.sendmail(Parametre.get(nom="SMTP_login"),
+                                     self.destinataire,
                                      mail.as_string())
-
+    
                     serveur.close()
 
                     wx.MessageBox(u"L'email a bien été envoyé", u"Email envoyé", wx.ICON_INFORMATION)
