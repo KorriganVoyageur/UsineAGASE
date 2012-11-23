@@ -244,10 +244,12 @@ class Produit(BaseModel):
 
     def stock_format(self):
         """ Retourne, formatté, le stock """
-
-        return str(self.stock) + " %s" % self.unite() + \
-               (lambda x: (x.stock > 1 and x.vrac == False) \
-                and "s" or  "")(self)
+        if self.vrac:
+            return "%.2f %s" % (self.stock/1000, self.unite())
+        else:
+            return "%i %s%s" % (self.stock,
+                                self.unite(),
+                                (lambda x: (x.stock > 1 and x.vrac == False) and "s" or  "")(self))
 
     class Meta:
         db_table = 'produits'
@@ -868,9 +870,13 @@ class Inventaire(BaseModel):
     Classe Inventaire
     """
 
-    date = DateField()
-    commentaire = TextField()
-    is_valide = BooleanField()
+    date = DateField(default=date.today())
+    commentaire = TextField(default="")
+    is_valide = BooleanField(default=False)
+
+    def initialisation(self):
+        for produit in Produit.select().where(Produit.retrait == False or (Produit.retrait == True and Produit.stock > 0)):
+            LigneInventaire.create(inventaire=self, produit=produit, stock_theorique=produit.stock)
 
     def __repr__(self):
         _repr = "<Inventaire du %s>" % self.date.strftime("%d/%m/%Y")
@@ -890,25 +896,28 @@ class LigneInventaire(BaseModel):
     
     inventaire = ForeignKeyField(Inventaire, cascade=True, related_name='lignes_inventaire')
     produit = ForeignKeyField(Produit)
-    
+
     def __repr__(self):
-        _repr = "<Inventaire du %s>" % self.date.strftime("%d/%m/%Y")
+        _repr = "<Inventaire du %s : %s>" % (self.inventaire.date.strftime("%d/%m/%Y"), self.produit)
         return _repr.encode("utf-8")
-    
+
     def stock_theorique_format(self):
-        """ Retourne, formatté, le stock """
-
-        return str(self.stock_theorique) + " %s" % self.produit.unite() + \
-               (lambda x: (x.stock_theorique > 1 and x.produit.vrac == False) \
-                and "s" or  "")(self)
-                
+        """ Retourne, formatté, le stock théorique """
+        if self.produit.vrac:
+            return "%.2f %s" % (self.stock_theorique/1000, self.produit.unite())
+        else:
+            return "%i %s%s" % (self.stock_theorique,
+                                self.produit.unite(),
+                                (lambda x: (x.stock_theorique > 1 and x.produit.vrac == False) and "s" or  "")(self))
+            
     def stock_reel_format(self):
-        """ Retourne, formatté, le stock """
-
-        return str(self.stock_reel) + " %s" % self.produit.unite() + \
-               (lambda x: (x.stock_reel > 1 and x.produit.vrac == False) \
-                and "s" or  "")(self)
-
+        """ Retourne, formatté, le stock réel """
+        if self.produit.vrac:
+            return "%.2f %s" % (self.stock_reel/1000, self.produit.unite())
+        else:
+            return "%i %s%s" % (self.stock_reel,
+                                self.produit.unite(),
+                                (lambda x: (x.stock_reel > 1 and x.produit.vrac == False) and "s" or  "")(self))
 
     class Meta:
         db_table = 'lignes_inventaire'

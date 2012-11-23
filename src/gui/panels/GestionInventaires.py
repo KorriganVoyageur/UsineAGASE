@@ -26,8 +26,8 @@ class GestionInventaires(wx.Panel):
                 return "En cours de validation"
 
         self.liste_inventaires.SetColumns([
-            ColumnDefn("Date", "left", -1, "date", stringConverter="Inventaire du %d-%m-%Y", minimumWidth=100),
-            ColumnDefn("Statut", "left", 100, "is_valide", stringConverter=is_valide, isSpaceFilling=True)
+            ColumnDefn("Date", "left", 200, "date", stringConverter="Inventaire du %d-%m-%Y", minimumWidth=200),
+            ColumnDefn("Statut", "left", -1, "is_valide", stringConverter=is_valide, isSpaceFilling=True)
         ])
 
         def rowFormatterLI(listItem, commande):
@@ -65,6 +65,7 @@ class GestionInventaires(wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(sizer_entete, 0, wx.BOTTOM | wx.ALIGN_RIGHT | wx.EXPAND, 10)
         sizer.Add(self.liste_inventaires, 1, wx.EXPAND)
+
         self.SetSizer(sizer)
         sizer.Fit(self)
 
@@ -82,8 +83,14 @@ class GestionInventaires(wx.Panel):
 
     def OnAjoutInventaire(self, event):
         #dialog_inventaire = wx.Dialog(self, title=u"Nouvel inventaire")
+        self.Hide()
+        
         fiche_inventaire = FicheInventaire(self.GetParent())
-        fiche_inventaire.Show()
+
+        sizer = self.GetParent().GetSizer()
+        sizer.Add(fiche_inventaire, 1, wx.EXPAND)
+        self.GetParent().SetSizer(sizer)
+        self.GetParent().Layout()
         
         '''dialog_inventaire.Fit()
         dialog_inventaire.ShowModal()

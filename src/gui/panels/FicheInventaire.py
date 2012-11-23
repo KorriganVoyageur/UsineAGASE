@@ -20,7 +20,8 @@ class FicheInventaire(wx.Panel):
         if inventaire:
             self.inventaire = inventaire
         else:
-            self.inventaire = Inventaire(inventaire=inventaire)
+            self.inventaire = Inventaire.create()
+            self.inventaire.initialisation()
 
         self.label_date = wx.StaticText(self, -1, u"Date de l'inventaire :")
         self.label_date_v = wx.StaticText(self, -1, "")
@@ -30,7 +31,7 @@ class FicheInventaire(wx.Panel):
 
         self.liste_lignes_inventaire.SetColumns([
             ColumnDefn("Ref GASE", "left", -1, "produit.ref_GASE", fixedWidth=90),
-            ColumnDefn("Nom", "left", -1, "produit.nom"),
+            ColumnDefn("Nom", "left", -1, "produit.nom",  minimumWidth=100),
             ColumnDefn("Fournisseur", "left", -1, "produit.fournisseur.nom", minimumWidth=100),
             ColumnDefn(u"Stock théorique", "left", 100,
                        "stock_theorique_format",
@@ -54,6 +55,7 @@ class FicheInventaire(wx.Panel):
 
         self.__set_properties()
         self.__set_valeurs()
+        self.__remplissage_liste()
         self.__do_layout()
 
         self.Bind(wx.EVT_BUTTON, self.OnEnregistrer, self.bouton_enregistrer)
@@ -61,30 +63,27 @@ class FicheInventaire(wx.Panel):
         # end wxGlade
 
     def __set_properties(self):
-        pass
+        self.text_commentaire.SetMinSize((400, 200))
 
     def __set_valeurs(self):
-        if self.inventaire.get_id() != None:
-            if not self.inventaire.is_valide:
-                self.inventaire.date = datetime.today()
-            
-            self.label_date_v.SetLabel(self.inventaire.date.strftime("%d/%m/%y"))
-            self.text_commentaire.SetValue(self.inventaire.commentaire)
-        else:
-            self.label_date_v.SetLabel(datetime.today().strftime("%d/%m/%y"))
+        self.label_date_v.SetLabel(self.inventaire.date.strftime("%d/%m/%y"))
+        self.text_commentaire.SetValue(self.inventaire.commentaire)
+        
+    def __remplissage_liste(self):
+        try:
+            self.liste_lignes_inventaire.SetObjects([li for li in self.inventaire.lignes_inventaire])
+        except BaseException as ex:
+            print ex
             
     def __do_layout(self):
         # begin wxGlade: FicheInventaire.__do_layout
-        sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_bouton = wx.BoxSizer(wx.HORIZONTAL)
 
         grid_sizer = wx.FlexGridSizer(5, 2, 5, 10)
         grid_sizer.Add(self.label_date, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer.Add(self.label_date_v, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer.Add(self.label_commentaire, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer.Add(self.text_commentaire, 0, 0, 0)
-
-        sizer.Add(grid_sizer, 0, wx.ALL|wx.EXPAND, 10)
+        grid_sizer.Add(self.label_commentaire, 0, wx.ALIGN_TOP, 0)
+        grid_sizer.Add(self.text_commentaire, 1, 0, 0)
 
         sizer_bouton.Add((20, 20), 1, 0, 0)
         sizer_bouton.Add(self.bouton_enregistrer, 0, 0, 0)
@@ -94,6 +93,9 @@ class FicheInventaire(wx.Panel):
         sizer_bouton.Add(self.bouton_annuler, 0, 0, 0)
         sizer_bouton.Add((20, 20), 1, 0, 0)
 
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(grid_sizer, 0, wx.ALL|wx.EXPAND, 10)
+        sizer.Add(self.liste_lignes_inventaire, 1, wx.ALL|wx.EXPAND, 10)
         sizer.Add(sizer_bouton, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
 
         self.SetSizer(sizer)
