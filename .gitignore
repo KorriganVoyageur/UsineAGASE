@@ -1,4 +1,5 @@
 src/usineagase.sqlite
+src/usineagase.sqlite-journal
 .settings/*
 .project
 .pydevproject
