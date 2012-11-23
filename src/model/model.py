@@ -164,6 +164,7 @@ class Produit(BaseModel):
         _repr = "<Produit : %s>" % self.nom
         return _repr.encode("utf-8")
 
+    @property
     def unite(self):
         """ Retourne l'unité du produit """
 
@@ -229,7 +230,7 @@ class Produit(BaseModel):
         Retourne le prix de vente formatté
         en fonction du type de vente (vrac ou à l'unité)
         """
-        return u"%.2f ¤" % self.prix_vente() + (self.vrac and " / " + self.unite() or "")
+        return u"%.2f ¤" % self.prix_vente() + (self.vrac and " / " + self.unite or "")
 
     def ref_GASE(self):
         """
@@ -245,10 +246,10 @@ class Produit(BaseModel):
     def stock_format(self):
         """ Retourne, formatté, le stock """
         if self.vrac:
-            return "%.2f %s" % (self.stock/1000, self.unite())
+            return "%.2f %s" % (self.stock/1000, self.unite)
         else:
             return "%i %s%s" % (self.stock,
-                                self.unite(),
+                                self.unite,
                                 (lambda x: (x.stock > 1 and x.vrac == False) and "s" or  "")(self))
 
     class Meta:
@@ -819,7 +820,7 @@ class LigneCommande(BaseModel):
                                 self.produit.conditionnement)
         else:
             return str(self.quantite_commandee) + " " + \
-                   self.produit.unite() + \
+                   self.produit.unite + \
                    ("s" if self.quantite_commandee > 1 else "")
 
     def quantite_livree_conditionnement(self):
@@ -838,7 +839,7 @@ class LigneCommande(BaseModel):
                                 self.produit.conditionnement)
         else:
             return str(self.quantite_livree) + " " + \
-                   self.produit.unite() + \
+                   self.produit.unite + \
                    ("s" if self.quantite_livree > 1 else "")
 
     def quantite_commandee_format(self):
@@ -848,7 +849,7 @@ class LigneCommande(BaseModel):
                                     pluriel=self.quantite_commandee() > 1)
         else:
             return str(self.quantite_commandee()) + " " + \
-                       self.produit.unite() + \
+                       self.produit.unite + \
                        ("s" if self.quantite_commandee() > 1 else "")
 
     def quantite_livree_format(self):
@@ -858,7 +859,7 @@ class LigneCommande(BaseModel):
                                     pluriel=self.quantite_commandee() > 1)
         else:
             return str(self.quantite_commandee()) + " " + \
-                       self.produit.unite() + \
+                       self.produit.unite + \
                        ("s" if self.quantite_commandee() > 1 else "")
 
     class Meta:
@@ -904,19 +905,19 @@ class LigneInventaire(BaseModel):
     def stock_theorique_format(self):
         """ Retourne, formatté, le stock théorique """
         if self.produit.vrac:
-            return "%.2f %s" % (self.stock_theorique/1000, self.produit.unite())
+            return "%.2f %s" % (self.stock_theorique/1000, self.produit.unite)
         else:
             return "%i %s%s" % (self.stock_theorique,
-                                self.produit.unite(),
+                                self.produit.unite,
                                 (lambda x: (x.stock_theorique > 1 and x.produit.vrac == False) and "s" or  "")(self))
             
     def stock_reel_format(self):
         """ Retourne, formatté, le stock réel """
         if self.produit.vrac:
-            return "%.2f %s" % (self.stock_reel/1000, self.produit.unite())
+            return "%.2f %s" % (self.stock_reel/1000, self.produit.unite)
         else:
             return "%i %s%s" % (self.stock_reel,
-                                self.produit.unite(),
+                                self.produit.unite,
                                 (lambda x: (x.stock_reel > 1 and x.produit.vrac == False) and "s" or  "")(self))
 
     class Meta:
