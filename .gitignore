@@ -2,3 +2,4 @@ src/usineagase.sqlite
 .settings/*
 .project
 .pydevproject
+*.pyc
