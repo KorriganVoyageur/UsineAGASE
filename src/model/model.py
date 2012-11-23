@@ -16,10 +16,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.lib import colors
 
-import config
-
 DATABASE = SqliteDatabase('usineagase.sqlite', autocommit=False)
-EXERCICE_EN_COURS = None
 MARGE_VENTE = 1.05
 
 
@@ -618,17 +615,17 @@ class Commande(BaseModel):
         lst = []
 
         tableau = []
-        tableau.append([config.PARAMETRES_ASSOCIATION.Nom,
+        tableau.append([Parametre.get(nom="ASSO_nom"),
                         self.fournisseur.nom])
-        tableau.append([config.PARAMETRES_ASSOCIATION.Adresse,
+        tableau.append([Parametre.get(nom="ASSO_adresse"),
                         self.fournisseur.adresse])
-        tableau.append([config.PARAMETRES_ASSOCIATION.CodePostal + " " +
-                        config.PARAMETRES_ASSOCIATION.Ville,
+        tableau.append([Parametre.get(nom="ASSO_codepostal") + " " +
+                        Parametre.get(nom="ASSO_ville"),
                         self.fournisseur.code_postal + " " +
                         self.fournisseur.ville])
-        tableau.append([config.PARAMETRES_ASSOCIATION.Telephone,
+        tableau.append([Parametre.get(nom="ASSO_telephone"),
                         self.fournisseur.telephone()])
-        tableau.append([config.PARAMETRES_ASSOCIATION.EmailGASE,
+        tableau.append([Parametre.get(nom="ASSO_email"),
                         self.fournisseur.email])
 
         tableau_entete = Table(tableau, ([10 * cm, 8 * cm]))

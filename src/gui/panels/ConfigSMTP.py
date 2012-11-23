@@ -11,17 +11,18 @@ from classes.Validators import GenericTextValidator, VALIDATE_INT
 import os
 import smtplib
 import urllib2
-import config
 
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEBase import MIMEBase
 from email.MIMEText import MIMEText
 from email import Encoders
 
+from model.model import Parametre, DATABASE
+
 # begin wxGlade: extracode
 # end wxGlade
 
-
+#TODO : ça marche pas
 class ConfigSMTP(wx.Panel):
     def __init__(self, *args, **kwds):
         # begin wxGlade: GestionProduits.__init__
@@ -42,7 +43,7 @@ class ConfigSMTP(wx.Panel):
         self.bouton_sauvegarder = wx.Button(self, -1, u"Sauvegarder la configuration SMTP")
         
         self.throbber = AnimationCtrl(self)
-        self.throbber.SetAnimation(Animation("./icons/32x32/throbber6.gif"))
+        self.throbber.SetAnimation(Animation("../icons/32x32/throbber6.gif"))
         self.throbber.Play()
         
         self.server = None
@@ -66,11 +67,22 @@ class ConfigSMTP(wx.Panel):
         # end wxGlade
         
     def __set_values(self):
-        self.tc_serveur.SetValue(config.PARAMETRES_ASSOCIATION.ServeurSMTP)
-        self.tc_port.SetValue(str(config.PARAMETRES_ASSOCIATION.ServeurSMTPPort))
-        self.cb_securite.SetSelection(config.PARAMETRES_ASSOCIATION.ServeurSecurite)
-        self.tc_login.SetValue(config.PARAMETRES_ASSOCIATION.LoginSMTP)
-        self.tc_mdp.SetValue(config.PARAMETRES_ASSOCIATION.MotDePasseSMTP)
+        self.SMTP_serveur = Parametre.get_or_create(nom="SMTP_serveur")
+        self.SMTP_serveurport = Parametre.get_or_create(nom="SMTP_serveurport")
+        self.SMTP_serveursecurite = Parametre.get_or_create(nom="SMTP_serveursecurite")
+        self.SMTP_login = Parametre.get_or_create(nom="SMTP_login")
+        self.SMTP_motdepasse = Parametre.get_or_create(nom="SMTP_motdepasse")
+
+        self.tc_serveur.SetValue(self.SMTP_serveur.valeur,)
+        self.tc_port.SetValue(self.SMTP_serveurport.valeur,)
+
+        try:
+            self.cb_securite.SetSelection(int(self.SMTP_serveursecurite.valeur),)
+        except ValueError:
+            self.cb_securite.SetSelection(0,)
+
+        self.tc_login.SetValue(self.SMTP_login.valeur,)
+        self.tc_mdp.SetValue(self.SMTP_motdepasse.valeur,)
 
     def __do_layout(self):
         # begin wxGlade: MyFrame.__do_layout
@@ -163,18 +175,24 @@ class ConfigSMTP(wx.Panel):
             self.thread.start()
             
     def OnSauvegarde(self, event):
-        config.PARAMETRES_ASSOCIATION.ServeurSMTP = self.tc_serveur.GetValue()
-        config.PARAMETRES_ASSOCIATION.ServeurSMTPPort = self.tc_port.GetValue()
-        config.PARAMETRES_ASSOCIATION.ServeurSecurite = self.cb_securite.GetSelection()
-        config.PARAMETRES_ASSOCIATION.LoginSMTP = self.tc_login.GetValue()
-        config.PARAMETRES_ASSOCIATION.MotDePasseSMTP = self.tc_mdp.GetValue()
-        
-        config.PARAMETRES_ASSOCIATION.Sauvegarde()
-        
+
+        with DATABASE.transaction():
+            self.SMTP_serveur.value = self.tc_serveur.GetValue()
+            self.SMTP_serveurport = self.tc_port.GetValue()
+            self.SMTP_serveursecurite = self.cb_securite.GetSelection()
+            self.SMTP_login = self.tc_login.GetValue()
+            self.SMTP_motdepasse = self.tc_mdp.GetValue()
+            
+            self.SMTP_serveur.save()
+            self.SMTP_serveurport.save()
+            self.SMTP_serveursecurite.save()
+            self.SMTP_login.save()
+            self.SMTP_motdepasse.save()
+
         self.bouton_sauvegarder.Disable()
         
     def OnEmail(self, event):
-        self.mail("herve.garnier@@@@@no-log.org",
+        self.mail("herve.garnier@no-log.org",
        "Email de test",
        "Bla bla bla bla",
        "../../dernier_bon_imprime.pdf")

@@ -4,7 +4,8 @@
 import os
 import wx
 import re
-import config
+
+from model.model import Parametre
 
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEBase import MIMEBase
@@ -55,7 +56,7 @@ class EnvoiEmail(object):
 
         msg = MIMEMultipart()
 
-        msg['From'] = config.PARAMETRES_ASSOCIATION.LoginSMTP
+        msg['From'] = Parametre.get(nom="SMTP_login")
         msg['To'] = self.destinataire
         msg['Subject'] = self.sujet
 
@@ -68,15 +69,15 @@ class EnvoiEmail(object):
 
         if smtp.TestConnectionInternet():
             try:
-                smtp.SetServeur(config.PARAMETRES_ASSOCIATION.ServeurSMTP,
-                                int(config.PARAMETRES_ASSOCIATION.ServeurSMTPPort),
-                                config.PARAMETRES_ASSOCIATION.ServeurSecurite)
+                smtp.SetServeur(Parametre.get(nom="SMTP_serveur"),
+                                int(Parametre.get(nom="SMTP_serveurport")),
+                                Parametre.get(nom="SMTP_serveursecurite"))
 
-                smtp.SetLogin(config.PARAMETRES_ASSOCIATION.LoginSMTP,
-                              config.PARAMETRES_ASSOCIATION.MotDePasseSMTP)
+                smtp.SetLogin(Parametre.get(nom="SMTP_login"),
+                              Parametre.get(nom="SMTP_motdepasse"))
 
                 serveur = smtp.ConnectionServeur()
-                serveur.sendmail(config.PARAMETRES_ASSOCIATION.LoginSMTP,
+                serveur.sendmail(Parametre.get(nom="SMTP_login"),
                                  self.destinataire,
                                  msg.as_string())
 
