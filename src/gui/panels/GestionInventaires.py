@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-15 -*-
 
 import wx
-from model.model import Inventaire, DATABASE
+from model.model import Inventaire, LigneInventaire, DATABASE
 from lib.objectlistview import ObjectListView, ColumnDefn
 from gui.panels.FicheInventaire import FicheInventaire
 
@@ -82,7 +82,6 @@ class GestionInventaires(wx.Panel):
             self.bouton_suppression_inventaire.Disable()
 
     def OnAjoutInventaire(self, event):
-        #dialog_inventaire = wx.Dialog(self, title=u"Nouvel inventaire")
         self.Hide()
         
         fiche_inventaire = FicheInventaire(self.GetParent())
@@ -91,14 +90,6 @@ class GestionInventaires(wx.Panel):
         sizer.Add(fiche_inventaire, 1, wx.EXPAND)
         self.GetParent().SetSizer(sizer)
         self.GetParent().Layout()
-        
-        '''dialog_inventaire.Fit()
-        dialog_inventaire.ShowModal()
-        dialog_inventaire.Destroy()
-
-        if dialog_inventaire.GetReturnCode() == wx.ID_OK:
-            self.liste_inventaires.AddObject(fiche_inventaire.inventaire)
-            self.liste_inventaires.AutoSizeColumns()'''
                 
     def OnSuppressionInventaire(self, event):
         inventaire = self.liste_inventaires.GetSelectedObject()
@@ -107,19 +98,22 @@ class GestionInventaires(wx.Panel):
 
         if msgbox == wx.YES:
             with DATABASE.transaction():
-                inventaire.delete_instance()
+                inventaire.delete_instance(recursive=True)
 
             self.liste_inventaires.RemoveObject(inventaire)
 
     def OnEditionInventaire(self, event):
         inventaire = self.liste_inventaires.GetSelectedObject()
+        
+        self.Hide()
+        
+        fiche_inventaire = FicheInventaire(self.GetParent(), inventaire=inventaire)
 
-        dialog_inventaire = wx.Dialog(self, title=u"Edition de l'inventaire")
-        FicheInventaire(dialog_inventaire, inventaire=inventaire)
-        dialog_inventaire.Fit()
-        dialog_inventaire.ShowModal()
-        dialog_inventaire.Destroy()
+        sizer = self.GetParent().GetSizer()
+        sizer.Add(fiche_inventaire, 1, wx.EXPAND)
+        self.GetParent().SetSizer(sizer)
+        self.GetParent().Layout()
 
-        if dialog_inventaire.GetReturnCode() == wx.ID_OK:
+        '''if dialog_inventaire.GetReturnCode() == wx.ID_OK:
             self.liste_inventaires.RefreshObject(self.liste_inventaires.GetSelectedObject())
-            self.liste_inventaires.AutoSizeColumns()
+            self.liste_inventaires.AutoSizeColumns()'''
