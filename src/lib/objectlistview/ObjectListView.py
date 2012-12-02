@@ -3507,7 +3507,7 @@ class ColumnDefn(object):
     """
 
     def __init__(self, title="title", align="left", width=-1,
-                 valueGetter=None, imageGetter=None, stringConverter=None, objectConverter=None, valueSetter=None, isEditable=True,
+                 valueGetter=None, imageGetter=None, stringConverter=None, valueSetter=None, isEditable=True,
                  fixedWidth=None, minimumWidth=-1, maximumWidth=-1, isSpaceFilling=False,
                  cellEditorCreator=None, autoCompleteCellEditor=False, autoCompleteComboBoxCellEditor=False,
                  checkStateGetter=None, checkStateSetter=None,
@@ -3537,7 +3537,6 @@ class ColumnDefn(object):
         self.valueGetter = valueGetter
         self.imageGetter = imageGetter
         self.stringConverter = stringConverter
-        self.objectConverter = objectConverter
         self.valueSetter = valueSetter
         self.isSpaceFilling = isSpaceFilling
         self.cellEditorCreator = cellEditorCreator
@@ -3609,14 +3608,8 @@ class ColumnDefn(object):
         """
         Return a string representation of the value for this column from the given modelObject
         """
-        if self.objectConverter:
-            try:
-                return self.objectConverter(modelObject)
-            except TypeError:
-                pass
-        else:
-            value = self.GetValue(modelObject)
-            return self._StringToValue(value, self.stringConverter)
+        value = self.GetValue(modelObject)
+        return self._StringToValue(value, self.stringConverter)
 
 
     def _StringToValue(self, value, converter):
