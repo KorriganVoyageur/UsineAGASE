@@ -883,6 +883,16 @@ class Inventaire(BaseModel):
         _repr = u"<Inventaire du %s>" % self.date.strftime("%d/%m/%Y")
         return _repr.encode("utf-8")
 
+    def pret_a_valider(self):
+        pret = True
+        
+        for li in self.lignes_inventaire:
+            if li.stock_reel == None:
+                pret = False
+                break
+            
+        return pret
+
     class Meta:
         db_table = 'inventaires'
 
