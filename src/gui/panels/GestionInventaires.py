@@ -15,6 +15,7 @@ class GestionInventaires(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, style=wx.TAB_TRAVERSAL)
         
+        self.sizer_navigation_staticbox = wx.StaticBox(self, -1, "Gestion des inventaires")
         self.bouton_ajout_inventaire = wx.BitmapButton(self, -1, wx.Bitmap("../icons/16x16/ajouter.ico"))
         self.bouton_suppression_inventaire = wx.BitmapButton(self, -1, wx.Bitmap("../icons/16x16/enlever.ico"))
         self.liste_inventaires = ObjectListView(self, -1, style=wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL)
@@ -52,12 +53,13 @@ class GestionInventaires(wx.Panel):
         # end wxGlade
 
     def __set_properties(self):
+        self.sizer_navigation_staticbox.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
         self.bouton_ajout_inventaire.SetToolTip(wx.ToolTip(u"Faire un nouvel inventaire"))
         self.bouton_suppression_inventaire.SetToolTip(wx.ToolTip(u"Supprimer l'inventaire sélectionné"))
         self.bouton_suppression_inventaire.Disable()
 
     def __do_layout(self):
-        sizer_entete = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_entete = wx.StaticBoxSizer(self.sizer_navigation_staticbox, wx.HORIZONTAL)
         sizer_entete.Add(self.bouton_ajout_inventaire, 0, wx.BOTTOM | wx.TOP | wx.ALIGN_RIGHT, 5)
         sizer_entete.Add((10, 10))
         sizer_entete.Add(self.bouton_suppression_inventaire, 0, wx.BOTTOM | wx.TOP | wx.ALIGN_RIGHT, 5)
