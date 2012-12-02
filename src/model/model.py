@@ -893,7 +893,7 @@ class LigneInventaire(BaseModel):
     """
 
     stock_theorique = IntegerField(default=0)
-    stock_reel = IntegerField(default=0)
+    stock_reel = IntegerField(null=True)
     
     inventaire = ForeignKeyField(Inventaire, cascade=True, related_name='lignes_inventaire')
     produit = ForeignKeyField(Produit)
@@ -913,12 +913,27 @@ class LigneInventaire(BaseModel):
             
     def stock_reel_format(self):
         """ Retourne, formatté, le stock réel """
-        if self.produit.vrac:
-            return "%.2f %s" % (float(self.stock_reel)/1000, self.produit.unite)
+        if self.stock_reel >= 0:        
+            if self.produit.vrac:
+                return "%.2f %s" % (float(self.stock_reel)/1000, self.produit.unite)
+            else:
+                return "%i %s%s" % (self.stock_reel,
+                                    self.produit.unite,
+                                    (lambda x: (x.stock_reel > 1 and x.produit.vrac == False) and "s" or  "")(self))
         else:
-            return "%i %s%s" % (self.stock_reel,
-                                self.produit.unite,
-                                (lambda x: (x.stock_reel > 1 and x.produit.vrac == False) and "s" or  "")(self))
+            return ""
+        
+    def stock_difference(self):
+        """ Retourne, formatté, la différence enter stock réel et théorique """
+        if self.stock_reel >= 0:        
+            if self.produit.vrac:
+                return "%.2f %s" % (float(self.stock_reel - self.stock_theorique)/1000, self.produit.unite)
+            else:
+                return "%i %s%s" % (self.stock_reel - self.stock_theorique,
+                                    self.produit.unite,
+                                    (lambda x: (x.stock_reel > 1 and x.produit.vrac == False) and "s" or  "")(self))
+        else:
+            return ""
 
     class Meta:
         db_table = 'lignes_inventaire'
