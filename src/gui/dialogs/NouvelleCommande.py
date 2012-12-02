@@ -55,7 +55,7 @@ class NouvelleCommande(wx.Dialog):
     def onSelectFournisseur(self, event):
         fournisseur = self.combo_box_SelectionFournisseur.GetClientData(self.combo_box_SelectionFournisseur.GetSelection())
 
-        commande_existante = Commande.select().where(Commande._statut == 0)
+        commande_existante = Commande.select().where((Commande._statut == 0) & (Commande.fournisseur == fournisseur))
 
         if commande_existante.exists():
             wx.MessageBox(u"Une commande pour %s" %fournisseur.nom + u" est déjà en cours de création.", u"Commande en création")
