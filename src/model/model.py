@@ -161,7 +161,7 @@ class Produit(BaseModel):
     tva = ForeignKeyField(Tva, related_name='produits')
 
     def __repr__(self):
-        _repr = "<Produit : %s>" % self.nom
+        _repr = u"<Produit : %s>" % self.nom
         return _repr.encode("utf-8")
 
     @property
@@ -246,7 +246,7 @@ class Produit(BaseModel):
     def stock_format(self):
         """ Retourne, formatté, le stock """
         if self.vrac:
-            return "%.2f %s" % (self.stock/1000, self.unite)
+            return "%.2f %s" % (float(self.stock)/1000, self.unite)
         else:
             return "%i %s%s" % (self.stock,
                                 self.unite,
@@ -880,7 +880,7 @@ class Inventaire(BaseModel):
             LigneInventaire.create(inventaire=self, produit=produit, stock_theorique=produit.stock)
 
     def __repr__(self):
-        _repr = "<Inventaire du %s>" % self.date.strftime("%d/%m/%Y")
+        _repr = u"<Inventaire du %s>" % self.date.strftime("%d/%m/%Y")
         return _repr.encode("utf-8")
 
     class Meta:
@@ -899,13 +899,13 @@ class LigneInventaire(BaseModel):
     produit = ForeignKeyField(Produit)
 
     def __repr__(self):
-        _repr = "<Inventaire du %s : %s>" % (self.inventaire.date.strftime("%d/%m/%Y"), self.produit)
+        _repr = u"<Inventaire du %s : %s>" % (self.inventaire.date.strftime("%d/%m/%Y"), self.produit.nom)
         return _repr.encode("utf-8")
 
     def stock_theorique_format(self):
         """ Retourne, formatté, le stock théorique """
         if self.produit.vrac:
-            return "%.2f %s" % (self.stock_theorique/1000, self.produit.unite)
+            return "%.2f %s" % (float(self.stock_theorique)/1000, self.produit.unite)
         else:
             return "%i %s%s" % (self.stock_theorique,
                                 self.produit.unite,
@@ -914,7 +914,7 @@ class LigneInventaire(BaseModel):
     def stock_reel_format(self):
         """ Retourne, formatté, le stock réel """
         if self.produit.vrac:
-            return "%.2f %s" % (self.stock_reel/1000, self.produit.unite)
+            return "%.2f %s" % (float(self.stock_reel)/1000, self.produit.unite)
         else:
             return "%i %s%s" % (self.stock_reel,
                                 self.produit.unite,
