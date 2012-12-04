@@ -10,6 +10,7 @@ from textwrap import fill
 from classes.Validators import GenericTextValidator, VALIDATE_INT
 
 from model.model import Commande, LigneCommande, Produit, DATABASE
+from datetime import date
 
 ###########################################################################
 ## Class FicheCommande
@@ -220,6 +221,8 @@ class FicheCommande(wx.Panel):
 
     def OnSauvegarder(self, event):
         try:
+            self.commande.date_commande = date.today()
+            self.commande.save()
             DATABASE.commit()
             wx.MessageBox(u"La commande a été enregistrée", "Notification")
         except BaseException as ex:
@@ -231,6 +234,8 @@ class FicheCommande(wx.Panel):
                                    caption=u"Sauvegarde de la commande", style=wx.YES_NO|wx.ICON_QUESTION)
 
             if dlg.ShowModal() == wx.ID_YES:
+                self.commande.date_commande = date.today()
+                self.commande.save()
                 DATABASE.commit()
             else:
                 DATABASE.rollback()
