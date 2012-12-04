@@ -9,117 +9,6 @@ from datetime import date
 from wx.lib.buttons import GenBitmapTextButton
 
 
-class StockIntEditor(CellEditor.BaseCellTextEditor):
-    """This is a text editor for integers for use in an ObjectListView"""
-
-    def GetValue(self):
-        "Get the value from the editor"
-        s = wx.TextCtrl.GetValue(self).strip()
-        try:
-            return int(s)
-        except ValueError:
-            return None
-
-    def SetValue(self, value):
-        "Put a new value into the editor"
-        try:
-            value = repr(int(value.split()[0]))
-        except:
-            pass
-            
-        wx.TextCtrl.SetValue(self, value)
-
-
-class StockFloatEditor(CellEditor.BaseCellTextEditor):
-    """This is a text editor for floats for use in an ObjectListView"""
-
-    def GetValue(self):
-        "Get the value from the editor"
-        s = wx.TextCtrl.GetValue(self).strip()
-        try:
-            return float(s)
-        except ValueError:
-            return None
-
-    def SetValue(self, value):
-        "Put a new value into the editor"
-        try:
-            value = repr(float(value.split()[0]))
-        except:
-            pass
-            
-        wx.TextCtrl.SetValue(self, value)
-
-###########################################################################
-## Class DialogAjoutProduit
-###########################################################################
-
-class DialogAjoutProduit(wx.Dialog):
-    def __init__(self, inventaire):
-        wx.Dialog.__init__(self, None, -1, title=u"Ajouter un produit", pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE)
-
-        self.inventaire = inventaire
-
-        self.label_recherche_nom = wx.StaticText(self, -1, "Recherche sur le nom : ")
-        self.text_recherche_nom = wx.TextCtrl(self, -1, "")
-        self.liste_produits = ObjectListView(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
-
-        self.liste_produits.SetColumns([
-            ColumnDefn("Ref GASE", "left", -1, "ref_GASE", fixedWidth=90),
-            ColumnDefn("Nom", "left", -1, "nom"),
-            ColumnDefn("Fournisseur", "left", -1, "fournisseur.nom", minimumWidth=100)
-        ])
-
-        self.text_recherche_nom.Bind(wx.EVT_TEXT, self.OnFilter)
-        self.liste_produits.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClickProduit)
-
-        self.__set_properties()
-        self.__remplissage_liste()
-        self.__do_layout()
-        # end wxGlade
-
-    def __set_properties(self):
-        self.SetMinSize((400,300))
-    
-    def __remplissage_liste(self):
-        try:
-            self.liste_produits.SetObjects([p for p in self.inventaire.produits_absents])
-            
-            #On dimentionne le dialog selon la largeur des colonnes
-            largeur = 0
-            for num_colonne in range(3) :
-                largeur += self.liste_produits.GetColumnWidth(num_colonne)
-             
-            self.liste_produits.SetMinSize((largeur+20,300))
-            
-        except BaseException as ex:
-            print ex
-
-    def __do_layout(self):
-        sizer_entete = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_entete.Add(self.label_recherche_nom, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        sizer_entete.Add(self.text_recherche_nom, 1, 0, 0)
-    
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(sizer_entete, 0, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
-        sizer.Add(self.liste_produits, 1, wx.ALL|wx.EXPAND, 10)
-        self.SetSizer(sizer)
-        sizer.Fit(self)
-        self.Layout()
-
-    def GetProduit(self):
-        return self.liste_produits.GetSelectedObject()
-
-    def OnClickProduit(self, event):
-        self.EndModal(wx.ID_OK)
-        
-    def OnFilter(self, event):
-        filtre_texte = Filter.TextSearch(self.liste_produits, text=self.text_recherche_nom.GetValue())
-        self.liste_produits.SetFilter(filtre_texte)
-        self.liste_produits.RepopulateList()
-        event.Skip()
-
-
 ###########################################################################
 ## Class FicheInventaire
 ###########################################################################
@@ -346,3 +235,114 @@ class FicheInventaire(wx.Panel):
         self.liste_lignes_inventaire.RepopulateList()
         event.Skip()
 
+
+class StockIntEditor(CellEditor.BaseCellTextEditor):
+    """This is a text editor for integers for use in an ObjectListView"""
+
+    def GetValue(self):
+        "Get the value from the editor"
+        s = wx.TextCtrl.GetValue(self).strip()
+        try:
+            return int(s)
+        except ValueError:
+            return None
+
+    def SetValue(self, value):
+        "Put a new value into the editor"
+        try:
+            value = repr(int(value.split()[0]))
+        except:
+            pass
+            
+        wx.TextCtrl.SetValue(self, value)
+
+
+class StockFloatEditor(CellEditor.BaseCellTextEditor):
+    """This is a text editor for floats for use in an ObjectListView"""
+
+    def GetValue(self):
+        "Get the value from the editor"
+        s = wx.TextCtrl.GetValue(self).strip()
+        try:
+            return float(s)
+        except ValueError:
+            return None
+
+    def SetValue(self, value):
+        "Put a new value into the editor"
+        try:
+            value = repr(float(value.split()[0]))
+        except:
+            pass
+            
+        wx.TextCtrl.SetValue(self, value)
+
+###########################################################################
+## Class DialogAjoutProduit
+###########################################################################
+
+class DialogAjoutProduit(wx.Dialog):
+    def __init__(self, inventaire):
+        wx.Dialog.__init__(self, None, -1, title=u"Ajouter un produit", pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE)
+
+        self.inventaire = inventaire
+
+        self.label_recherche_nom = wx.StaticText(self, -1, "Recherche sur le nom : ")
+        self.text_recherche_nom = wx.TextCtrl(self, -1, "")
+        self.liste_produits = ObjectListView(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+
+        self.liste_produits.SetColumns([
+            ColumnDefn("Ref GASE", "left", -1, "ref_GASE", fixedWidth=90),
+            ColumnDefn("Nom", "left", -1, "nom"),
+            ColumnDefn("Fournisseur", "left", -1, "fournisseur.nom", minimumWidth=100)
+        ])
+
+        self.text_recherche_nom.Bind(wx.EVT_TEXT, self.OnFilter)
+        self.liste_produits.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClickProduit)
+
+        self.__set_properties()
+        self.__remplissage_liste()
+        self.__do_layout()
+        # end wxGlade
+
+    def __set_properties(self):
+        self.SetMinSize((400,300))
+    
+    def __remplissage_liste(self):
+        try:
+            requete = Produit.select().where(~(Produit.pk << self.inventaire.produits))
+            self.liste_produits.SetObjects([p for p in requete])
+            
+            #On dimentionne le dialog selon la largeur des colonnes
+            largeur = 0
+            for num_colonne in range(3) :
+                largeur += self.liste_produits.GetColumnWidth(num_colonne)
+             
+            self.liste_produits.SetMinSize((largeur+20,300))
+            
+        except BaseException as ex:
+            print ex
+
+    def __do_layout(self):
+        sizer_entete = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_entete.Add(self.label_recherche_nom, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_entete.Add(self.text_recherche_nom, 1, 0, 0)
+    
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(sizer_entete, 0, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
+        sizer.Add(self.liste_produits, 1, wx.ALL|wx.EXPAND, 10)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def GetProduit(self):
+        return self.liste_produits.GetSelectedObject()
+
+    def OnClickProduit(self, event):
+        self.EndModal(wx.ID_OK)
+        
+    def OnFilter(self, event):
+        filtre_texte = Filter.TextSearch(self.liste_produits, text=self.text_recherche_nom.GetValue())
+        self.liste_produits.SetFilter(filtre_texte)
+        self.liste_produits.RepopulateList()
+        event.Skip()
