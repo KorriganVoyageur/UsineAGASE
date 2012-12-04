@@ -60,6 +60,7 @@ class FicheProduit(wx.Panel):
         self.text_PrixAchat = wx.TextCtrl(self, -1, "",
                                           validator=GenericTextValidator(flag=VALIDATE_FLOAT))
         self.label_PrixUniteSacBidon = wx.StaticText(self, -1, u"¤ par unité")
+        self.label_PrixTTC = wx.StaticText(self, -1, u", soit 0 ¤ TTC")
         self.label_RetraitProduit = wx.StaticText(self, -1, "Retirer le produit ? :")
         self.checkbox_RetraitProduit = wx.CheckBox(self, -1, "")
         self.label_MotifRetrait = wx.StaticText(self, -1, "Motif du retrait:")
@@ -74,11 +75,12 @@ class FicheProduit(wx.Panel):
         self.__set_tooltips()
         self.__do_layout()
 
-        self.Bind(wx.EVT_COMBOBOX, self.OnChoixCategorie, self.combo_box_Categorie)
-        self.Bind(wx.EVT_RADIOBOX, self.OnDefLabelsUnites, self.radio_box_TypeVente)
-        self.Bind(wx.EVT_RADIOBOX, self.OnDefLabelsUnites, self.radio_box_UniteMesure)
-        self.Bind(wx.EVT_CHECKBOX, self.OnClickRetrait, self.checkbox_RetraitProduit)
-        self.Bind(wx.EVT_BUTTON, self.OnEnregistre, self.button_ok)
+        self.combo_box_Categorie.Bind(wx.EVT_COMBOBOX, self.OnChoixCategorie)
+        self.radio_box_TypeVente.Bind(wx.EVT_RADIOBOX, self.OnDefLabelsUnites)
+        self.radio_box_UniteMesure.Bind(wx.EVT_RADIOBOX, self.OnDefLabelsUnites)
+        self.checkbox_RetraitProduit.Bind(wx.EVT_CHECKBOX, self.OnClickRetrait)
+        self.button_ok.Bind(wx.EVT_BUTTON, self.OnEnregistre)
+        self.text_PrixAchat.Bind(wx.EVT_TEXT, self.OnChangePrix)
 
         self.Bind(wx.EVT_CLOSE, self.OnClose, self)
         self.Bind(wx.EVT_BUTTON, self.OnClose, self.button_annuler)
@@ -97,64 +99,6 @@ class FicheProduit(wx.Panel):
     def __set_tooltips(self):
         #TODO: tooltips à faire
         self.text_Conditionnement.SetToolTip(wx.ToolTip(u"Défini par combien le fournisseur vend ce produit. Exemple : carton de 6, sac ou bidon à l'unité"))
-
-    def __do_layout(self):
-        # begin wxGlade: FicheProduit.__do_layout
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer_boutons = wx.BoxSizer(wx.HORIZONTAL)
-        grid_sizer = wx.FlexGridSizer(14, 2, 6, 10)
-        #grid_sizer.SetFlexibleDirection(wx.HORIZONTAL)
-        sizer_PrixAchat = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_UnitesParCarton = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_PoidsVolume = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_Categorie = wx.BoxSizer(wx.HORIZONTAL)
-        grid_sizer.Add(self.label_Nom, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer.Add(self.text_Nom, 0, wx.EXPAND, 0)
-        grid_sizer.Add(self.label_RefGASE, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM, 5)
-        grid_sizer.Add(self.label_RefGASEV, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM, 5)
-        grid_sizer.Add(self.label_Categorie, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        sizer_Categorie.Add(self.combo_box_Categorie, 1, wx.EXPAND, 0)
-        sizer_Categorie.Add(self.label_CategorieV, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer.Add(sizer_Categorie, 1, wx.EXPAND, 0)
-        grid_sizer.Add(self.label_Fournisseur, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer.Add(self.combo_box_Fournisseur, 0, wx.EXPAND, 0)
-        grid_sizer.Add(self.label_RefFournisseur, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer.Add(self.text_RefFournisseur, 0, wx.EXPAND, 0)
-        grid_sizer.Add(self.label_Origine, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer.Add(self.text_Origine, 0, wx.EXPAND, 0)
-        grid_sizer.Add(self.label_TypeVente, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer.Add(self.radio_box_TypeVente, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer.Add(self.label_UniteMesure, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer.Add(self.radio_box_UniteMesure, 0, wx.EXPAND, 0)
-        grid_sizer.Add(self.label_PoidsVolume, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        sizer_PoidsVolume.Add(self.text_PoidsVolume, 0, 0, 0)
-        sizer_PoidsVolume.Add(self.label_GrL, 0, wx.LEFT|wx.ALIGN_CENTER_VERTICAL, 5)
-        grid_sizer.Add(sizer_PoidsVolume, 1, wx.EXPAND, 0)
-        grid_sizer.Add(self.label_Conditionnement, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        sizer_UnitesParCarton.Add(self.text_Conditionnement, 0, 0, 0)
-        sizer_UnitesParCarton.Add(self.label_UniteSacBidon, 0, wx.LEFT|wx.ALIGN_CENTER_VERTICAL, 5)
-        grid_sizer.Add(sizer_UnitesParCarton, 1, wx.EXPAND, 0)
-        grid_sizer.Add(self.label_TVA, 0, 0, 0)
-        grid_sizer.Add(self.combo_box_TVA, 0, 0, 0)
-        grid_sizer.Add(self.label_PrixAchat, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        sizer_PrixAchat.Add(self.text_PrixAchat, 0, 0, 0)
-        sizer_PrixAchat.Add(self.label_PrixUniteSacBidon, 0, wx.LEFT|wx.ALIGN_CENTER_VERTICAL, 5)
-        grid_sizer.Add(sizer_PrixAchat, 1, wx.EXPAND, 0)
-        grid_sizer.Add(self.label_RetraitProduit, 0, wx.TOP|wx.BOTTOM, 3)
-        grid_sizer.Add(self.checkbox_RetraitProduit, 0, wx.TOP, 4)
-        grid_sizer.Add(self.label_MotifRetrait, 0, wx.TOP, 3)
-        grid_sizer.Add(self.text_MotifRetrait, 0, wx.EXPAND, 0)
-        sizer.Add(grid_sizer, 0, wx.ALL|wx.EXPAND, 10)
-        sizer_boutons.Add((20, 20), 1, 0, 0)
-        sizer_boutons.Add(self.button_ok, 0, 0, 0)
-        sizer_boutons.Add((20, 20), 1, 0, 0)
-        sizer_boutons.Add(self.button_annuler, 0, 0, 0)
-        sizer_boutons.Add((20, 20), 1, 0, 0)
-        sizer.Add(sizer_boutons, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
-        self.SetSizer(sizer)
-        self.Fit()
-        self.Layout()
-        # end wxGlade
 
     def __set_comboboxs(self):
         #TODO: Faire système de verification en cas de non existance de fournisseur/categorie/tva
@@ -211,6 +155,7 @@ class FicheProduit(wx.Panel):
                 self.text_MotifRetrait.SetValue(self.produit.motif_retrait)
 
             self.OnDefLabelsUnites(None)
+            self.OnChangePrix(None)
 
         else:
             self.label_CategorieV.Hide()
@@ -218,6 +163,65 @@ class FicheProduit(wx.Panel):
             self.OnChoixCategorie(None)
             self.combo_box_Fournisseur.Select(0)
             self.combo_box_TVA.Select(0)
+
+    def __do_layout(self):
+        # begin wxGlade: FicheProduit.__do_layout
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_boutons = wx.BoxSizer(wx.HORIZONTAL)
+        grid_sizer = wx.FlexGridSizer(14, 2, 6, 10)
+        #grid_sizer.SetFlexibleDirection(wx.HORIZONTAL)
+        sizer_PrixAchat = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_UnitesParCarton = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_PoidsVolume = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_Categorie = wx.BoxSizer(wx.HORIZONTAL)
+        grid_sizer.Add(self.label_Nom, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer.Add(self.text_Nom, 0, wx.EXPAND, 0)
+        grid_sizer.Add(self.label_RefGASE, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM, 5)
+        grid_sizer.Add(self.label_RefGASEV, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM, 5)
+        grid_sizer.Add(self.label_Categorie, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_Categorie.Add(self.combo_box_Categorie, 1, wx.EXPAND, 0)
+        sizer_Categorie.Add(self.label_CategorieV, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer.Add(sizer_Categorie, 1, wx.EXPAND, 0)
+        grid_sizer.Add(self.label_Fournisseur, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer.Add(self.combo_box_Fournisseur, 0, wx.EXPAND, 0)
+        grid_sizer.Add(self.label_RefFournisseur, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer.Add(self.text_RefFournisseur, 0, wx.EXPAND, 0)
+        grid_sizer.Add(self.label_Origine, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer.Add(self.text_Origine, 0, wx.EXPAND, 0)
+        grid_sizer.Add(self.label_TypeVente, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer.Add(self.radio_box_TypeVente, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer.Add(self.label_UniteMesure, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer.Add(self.radio_box_UniteMesure, 0, wx.EXPAND, 0)
+        grid_sizer.Add(self.label_PoidsVolume, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_PoidsVolume.Add(self.text_PoidsVolume, 0, 0, 0)
+        sizer_PoidsVolume.Add(self.label_GrL, 0, wx.LEFT|wx.ALIGN_CENTER_VERTICAL, 5)
+        grid_sizer.Add(sizer_PoidsVolume, 1, wx.EXPAND, 0)
+        grid_sizer.Add(self.label_Conditionnement, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_UnitesParCarton.Add(self.text_Conditionnement, 0, 0, 0)
+        sizer_UnitesParCarton.Add(self.label_UniteSacBidon, 0, wx.LEFT|wx.ALIGN_CENTER_VERTICAL, 5)
+        grid_sizer.Add(sizer_UnitesParCarton, 1, wx.EXPAND, 0)
+        grid_sizer.Add(self.label_TVA, 0, 0, 0)
+        grid_sizer.Add(self.combo_box_TVA, 0, 0, 0)
+        grid_sizer.Add(self.label_PrixAchat, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_PrixAchat.Add(self.text_PrixAchat, 0, 0, 0)
+        sizer_PrixAchat.Add(self.label_PrixUniteSacBidon, 0, wx.LEFT|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_PrixAchat.Add(self.label_PrixTTC, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer.Add(sizer_PrixAchat, 1, wx.EXPAND, 0)
+        grid_sizer.Add(self.label_RetraitProduit, 0, wx.TOP|wx.BOTTOM, 3)
+        grid_sizer.Add(self.checkbox_RetraitProduit, 0, wx.TOP, 4)
+        grid_sizer.Add(self.label_MotifRetrait, 0, wx.TOP, 3)
+        grid_sizer.Add(self.text_MotifRetrait, 0, wx.EXPAND, 0)
+        sizer.Add(grid_sizer, 0, wx.ALL|wx.EXPAND, 10)
+        sizer_boutons.Add((20, 20), 1, 0, 0)
+        sizer_boutons.Add(self.button_ok, 0, 0, 0)
+        sizer_boutons.Add((20, 20), 1, 0, 0)
+        sizer_boutons.Add(self.button_annuler, 0, 0, 0)
+        sizer_boutons.Add((20, 20), 1, 0, 0)
+        sizer.Add(sizer_boutons, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
+        self.SetSizer(sizer)
+        self.Fit()
+        self.Layout()
+        # end wxGlade
 
     def OnDefLabelsUnites(self, event):
         if self.radio_box_UniteMesure.GetSelection():
@@ -264,6 +268,13 @@ class FicheProduit(wx.Panel):
     def OnClickRetrait(self, event):  # wxGlade: FicheProduit.<event_handler>
         self.text_MotifRetrait.Enable(self.checkbox_RetraitProduit.IsChecked())
         event.Skip()
+    
+    #Permet d'avoir la conversion TTC du prix HT instantanément
+    def OnChangePrix(self, event):
+        try:
+            self.label_PrixTTC.SetLabel(u", soit %.2f ¤ TTC" %((float(self.text_PrixAchat.GetValue())*(1+(float(self.combo_box_TVA.GetValue())/100)))))
+        except:
+            pass
 
     def OnEnregistre(self, event):
         if self.Validate():
