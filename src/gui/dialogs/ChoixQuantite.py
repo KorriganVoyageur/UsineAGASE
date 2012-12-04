@@ -25,7 +25,7 @@ class ChoixQuantite(wx.Dialog):
         else:
             self.button_annuler = wx.Button(self, wx.ID_CANCEL, "")
 
-        self.Bind(wx.EVT_TEXT_ENTER, self.onEnregistrer, self.text_ctrl_quantite)
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnregistrer, self.text_ctrl_quantite)
 
         self.__set_properties()
         self.__do_layout()
@@ -64,7 +64,7 @@ class ChoixQuantite(wx.Dialog):
     def GetValue(self):
         return int(self.text_ctrl_quantite.GetValue())
 
-    def onEnregistrer(self, event):
+    def OnEnregistrer(self, event):
         if self.Validate():
             self.EndModal(wx.ID_OK)
 

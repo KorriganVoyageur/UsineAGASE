@@ -34,7 +34,7 @@ class FicheAdherent(wx.Panel):
 
         self.notebook_p1.label_Nom = wx.StaticText(self, -1, "Nom :")
         self.notebook_p1.text_Nom = wx.TextCtrl(self, -1, "", validator=GenericTextValidator())
-        self.notebook_p1.label_Prenom = wx.StaticText(self, -1, u"Prénom :")
+        self.notebook_p1.label_Prenom = wx.StaticText(self, -1, u"Prï¿½nom :")
         self.notebook_p1.text_Prenom = wx.TextCtrl(self, -1, "", validator=GenericTextValidator())
         self.notebook_p1.label_Adresse = wx.StaticText(self, -1, "Adresse :")
         self.notebook_p1.text_Adresse = wx.TextCtrl(self, -1, "", validator=GenericTextValidator())
@@ -67,11 +67,11 @@ class FicheAdherent(wx.Panel):
         self.notebook_p2.liste_categories = ObjectListView(self, -1, style=wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL)
 
         self.notebook_p2.liste_categories.SetColumns([
-            ColumnDefn(u"Adhésion", "left", -1, "adhesion_type.nom"),
+            ColumnDefn(u"Adhï¿½sion", "left", -1, "adhesion_type.nom"),
             ColumnDefn("Date", "left", -1, "date"),
             ColumnDefn("Montant", "left", 100,
                        "montant",
-                       stringConverter="%f ¤",
+                       stringConverter="%f ï¿½",
                        isSpaceFilling=True)
         ])'''
         
@@ -81,10 +81,10 @@ class FicheAdherent(wx.Panel):
         self.__set_combobox_cotisations()
         self.__set_valeurs()
 
-        self.notebook_p1.button_ok.Bind(wx.EVT_BUTTON, self.onEnregistre)
+        self.notebook_p1.button_ok.Bind(wx.EVT_BUTTON, self.OnEnregistre)
 
-        self.notebook_p1.Bind(wx.EVT_CLOSE, self.onClose, self)
-        self.notebook_p1.Bind(wx.EVT_BUTTON, self.onClose, self.notebook_p1.button_annuler)
+        self.notebook_p1.Bind(wx.EVT_CLOSE, self.OnClose, self)
+        self.notebook_p1.Bind(wx.EVT_BUTTON, self.OnClose, self.notebook_p1.button_annuler)
         # end wxGlade
 
     def __set_properties(self):
@@ -94,8 +94,8 @@ class FicheAdherent(wx.Panel):
         self.notebook_p1.text_TelephoneFixe.SetMinSize((150, -1))
         self.notebook_p1.text_TelephonePortable.SetMinSize((150, -1))
 
-        '''self.notebook_p2.bouton_ajout_adhesion.SetToolTip(wx.ToolTip(u"Ajouter une nouvelle adhésion"))
-        self.notebook_p2.bouton_supprime_adhesion.SetToolTip(wx.ToolTip(u"Supprimer l'adhésion sélectionnée"))
+        '''self.notebook_p2.bouton_ajout_adhesion.SetToolTip(wx.ToolTip(u"Ajouter une nouvelle adhï¿½sion"))
+        self.notebook_p2.bouton_supprime_adhesion.SetToolTip(wx.ToolTip(u"Supprimer l'adhï¿½sion sï¿½lectionnï¿½e"))
         self.notebook_p2.bouton_supprime_adhesion.Disable()'''
 
     def __do_layout(self):
@@ -159,8 +159,8 @@ class FicheAdherent(wx.Panel):
         self.notebook_p2.SetSizer(sizer_p2)
         self.notebook_p2.Fit()'''
         
-        self.notebook.AddPage(self.notebook_p1, u"Adhérant")
-        #self.notebook.AddPage(self.notebook_p2, u"Adhésions")
+        self.notebook.AddPage(self.notebook_p1, u"Adhï¿½rant")
+        #self.notebook.AddPage(self.notebook_p2, u"Adhï¿½sions")
         
         sizer.Add(self.notebook, 1, wx.ALL|wx.EXPAND, 5)
         self.SetSizer(sizer)
@@ -173,7 +173,7 @@ class FicheAdherent(wx.Panel):
         try:
             cotisation_types = [c for c in CotisationType.select().order_by(CotisationType.nom.asc())]
             for c in cotisation_types:
-                self.notebook_p1.combo_box_CotisationTypes.Append(c.nom + u" - %s ¤" % c.prix, c)
+                self.notebook_p1.combo_box_CotisationTypes.Append(c.nom + u" - %s ï¿½" % c.prix, c)
 
             self.notebook_p1.combo_box_CotisationTypes.Select(0)
 
@@ -204,7 +204,7 @@ class FicheAdherent(wx.Panel):
     def GetAdherent(self):
         return self.adherent
 
-    def onEnregistre(self, event):
+    def OnEnregistre(self, event):
         if self.Validate():
             self.adherent.nom = self.notebook_p1.text_Nom.GetValue()
             self.adherent.prenom = self.notebook_p1.text_Prenom.GetValue()
@@ -225,6 +225,6 @@ class FicheAdherent(wx.Panel):
 
             event.Skip()
 
-    def onClose(self, event):
+    def OnClose(self, event):
         #session.rollback()
         event.Skip()

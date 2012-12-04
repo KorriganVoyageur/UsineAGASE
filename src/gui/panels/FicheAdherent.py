@@ -52,10 +52,10 @@ class FicheAdherentBase(wx.Panel):
         self.__set_combobox_cotisations()
         self.__set_valeurs()
 
-        self.button_ok.Bind(wx.EVT_BUTTON, self.onEnregistre)
+        self.button_ok.Bind(wx.EVT_BUTTON, self.OnEnregistre)
 
-        self.Bind(wx.EVT_CLOSE, self.onClose, self)
-        self.Bind(wx.EVT_BUTTON, self.onClose, self.button_annuler)
+        self.Bind(wx.EVT_CLOSE, self.OnClose, self)
+        self.Bind(wx.EVT_BUTTON, self.OnClose, self.button_annuler)
         # end wxGlade
 
     def __set_properties(self):
@@ -147,7 +147,7 @@ class FicheAdherentBase(wx.Panel):
     def GetAdherent(self):
         return self.adherent
 
-    def onEnregistre(self, event):
+    def OnEnregistre(self, event):
         if self.Validate():
             self.adherent.nom = self.text_Nom.GetValue()
             self.adherent.prenom = self.text_Prenom.GetValue()
@@ -168,7 +168,7 @@ class FicheAdherentBase(wx.Panel):
 
             event.Skip()
 
-    def onClose(self, event):
+    def OnClose(self, event):
         event.Skip()
         
 

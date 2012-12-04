@@ -37,9 +37,9 @@ class GestionTVAs(wx.Panel):
         self.__do_layout()
         self.__remplissage_liste()
 
-        self.Bind(wx.EVT_BUTTON, self.onAjoutTVA,
+        self.Bind(wx.EVT_BUTTON, self.OnAjoutTVA,
                   self.button_ajout_tva)
-        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onModifTVA,
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnModifTVA,
                   self.liste_tvas)
         # end wxGlade
 
@@ -76,7 +76,7 @@ class GestionTVAs(wx.Panel):
         except BaseException as ex:
             print ex
 
-    def onAjoutTVA(self, event):
+    def OnAjoutTVA(self, event):
         dialog_tva = wx.Dialog(self, title=u"Nouveau taux de TVA")
         fiche_tva = FicheTVA(dialog_tva)
         dialog_tva.Fit()
@@ -87,7 +87,7 @@ class GestionTVAs(wx.Panel):
             self.liste_tvas.AddObject(fiche_tva.tva)
             self.liste_tvas.AutoSizeColumns()
 
-    def onModifTVA(self, event):
+    def OnModifTVA(self, event):
         tva = self.liste_tvas.GetSelectedObject()
 
         dialog_tva = wx.Dialog(self,

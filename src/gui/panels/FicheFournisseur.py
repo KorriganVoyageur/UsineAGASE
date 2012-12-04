@@ -48,11 +48,11 @@ class FicheFournisseur(wx.Panel):
         self.__do_layout()
         self.__set_valeurs()
 
-        self.button_ok.Bind(wx.EVT_BUTTON, self.onEnregistre)
+        self.button_ok.Bind(wx.EVT_BUTTON, self.OnEnregistre)
         self.button_Couleur.Bind(wx.EVT_BUTTON, self.selectionCouleur)
 
-        self.Bind(wx.EVT_CLOSE, self.onClose, self)
-        self.Bind(wx.EVT_BUTTON, self.onClose, self.button_annuler)
+        self.Bind(wx.EVT_CLOSE, self.OnClose, self)
+        self.Bind(wx.EVT_BUTTON, self.OnClose, self.button_annuler)
         # end wxGlade
 
     def __set_properties(self):
@@ -135,7 +135,7 @@ class FicheFournisseur(wx.Panel):
 
         dlg.Destroy()
 
-    def onEnregistre(self, event):
+    def OnEnregistre(self, event):
         if self.Validate():
             self.fournisseur.nom = self.text_Nom.GetValue()
             self.fournisseur.adresse = self.text_Adresse.GetValue()
@@ -153,6 +153,6 @@ class FicheFournisseur(wx.Panel):
 
             event.Skip()
 
-    def onClose(self, event):
+    def OnClose(self, event):
         #session.rollback()
         event.Skip()

@@ -69,11 +69,11 @@ class GestionProduits(wx.Panel):
         self.__remplissage_liste()
         self.liste_produits.SetSortColumn(0, True)
 
-        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onEditionProduit, self.liste_produits)
-        self.Bind(wx.EVT_COMBOBOX, self.onFilter, self.combo_box_Fournisseur)
-        self.Bind(wx.EVT_TEXT, self.onFilter, self.text_ctrl_RechercheNom)
-        self.Bind(wx.EVT_BUTTON, self.onAjoutProduit, self.button_AjoutProduit)
-        self.Bind(wx.EVT_BUTTON, self.onImpressionEtiquettes, self.button_ImpressionEtiquettes)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnEditionProduit, self.liste_produits)
+        self.Bind(wx.EVT_COMBOBOX, self.OnFilter, self.combo_box_Fournisseur)
+        self.Bind(wx.EVT_TEXT, self.OnFilter, self.text_ctrl_RechercheNom)
+        self.Bind(wx.EVT_BUTTON, self.OnAjoutProduit, self.button_AjoutProduit)
+        self.Bind(wx.EVT_BUTTON, self.OnImpressionEtiquettes, self.button_ImpressionEtiquettes)
         # end wxGlade
 
     def __set_properties(self):
@@ -125,7 +125,7 @@ class GestionProduits(wx.Panel):
         except BaseException as ex:
             print ex
 
-    def onAjoutProduit(self, event):
+    def OnAjoutProduit(self, event):
         dialog_produit = wx.Dialog(self, title=u"Nouveau produit")
         fiche_produit = FicheProduit(dialog_produit)
         dialog_produit.Fit()
@@ -136,7 +136,7 @@ class GestionProduits(wx.Panel):
             self.liste_produits.AddObject(fiche_produit.produit)
             self.liste_produits.AutoSizeColumns()
 
-    def onEditionProduit(self, event):
+    def OnEditionProduit(self, event):
         produit = self.liste_produits.GetSelectedObject()
 
         dialog_produit = wx.Dialog(self, title=u"Produit : " + produit.nom)
@@ -149,7 +149,7 @@ class GestionProduits(wx.Panel):
             self.liste_produits.RefreshObject(self.liste_produits.GetSelectedObject())
             self.liste_produits.AutoSizeColumns()
 
-    def onImpressionEtiquettes(self, event):
+    def OnImpressionEtiquettes(self, event):
         lst = []
         ligne_etiquettes = []
         tableau_etiquettes = []
@@ -247,7 +247,7 @@ class GestionProduits(wx.Panel):
             except:
                 DATABASE.rollback()
 
-    def onFilter(self, event):
+    def OnFilter(self, event):
         filtre_texte = Filter.TextSearch(self.liste_produits, text=self.text_ctrl_RechercheNom.GetValue())
 
         pk_fournisseur = self.combo_box_Fournisseur.GetClientData(self.combo_box_Fournisseur.GetSelection())

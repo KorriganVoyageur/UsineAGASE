@@ -24,7 +24,7 @@ class NouvelleCommande(wx.Dialog):
 
         self.__do_layout()
 
-        self.Bind(wx.EVT_BUTTON, self.onSelectFournisseur, self.button_SelectionFournisseur)
+        self.Bind(wx.EVT_BUTTON, self.OnSelectFournisseur, self.button_SelectionFournisseur)
 
     def __do_layout(self):
         # begin wxGlade: NouvelleCommande.__do_layout
@@ -52,7 +52,7 @@ class NouvelleCommande(wx.Dialog):
         except BaseException as ex:
             print ex
 
-    def onSelectFournisseur(self, event):
+    def OnSelectFournisseur(self, event):
         fournisseur = self.combo_box_SelectionFournisseur.GetClientData(self.combo_box_SelectionFournisseur.GetSelection())
 
         commande_existante = Commande.select().where((Commande._statut == 0) & (Commande.fournisseur == fournisseur))

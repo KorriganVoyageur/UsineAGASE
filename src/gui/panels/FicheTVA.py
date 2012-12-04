@@ -26,11 +26,11 @@ class FicheTVA(wx.Panel):
         self.button_ok = wx.Button(self, wx.ID_OK, "Ok")
         self.button_annuler = wx.Button(self, wx.ID_CANCEL, "Annuler")
 
-        self.button_ok.Bind(wx.EVT_BUTTON, self.onEnregistre)
-        self.Bind(wx.EVT_TEXT_ENTER, self.onEnregistre, self.text_TauxTVA)
+        self.button_ok.Bind(wx.EVT_BUTTON, self.OnEnregistre)
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnregistre, self.text_TauxTVA)
 
-        self.Bind(wx.EVT_CLOSE, self.onClose, self)
-        self.Bind(wx.EVT_BUTTON, self.onClose, self.button_annuler)
+        self.Bind(wx.EVT_CLOSE, self.OnClose, self)
+        self.Bind(wx.EVT_BUTTON, self.OnClose, self.button_annuler)
 
         self.__set_properties()
         self.__set_valeurs()
@@ -69,7 +69,7 @@ class FicheTVA(wx.Panel):
     def GetTVA(self):
         return self.tva
 
-    def onEnregistre(self, event):
+    def OnEnregistre(self, event):
         if self.Validate():
             self.tva.taux = self.text_TauxTVA.GetValue()
 
@@ -78,5 +78,5 @@ class FicheTVA(wx.Panel):
 
             event.Skip()
 
-    def onClose(self, event):
+    def OnClose(self, event):
         event.Skip()

@@ -70,8 +70,8 @@ class DialogAjoutProduit(wx.Dialog):
             ColumnDefn("Fournisseur", "left", -1, "fournisseur.nom", minimumWidth=100)
         ])
 
-        self.text_recherche_nom.Bind(wx.EVT_TEXT, self.onFilter)
-        self.liste_produits.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onClickProduit)
+        self.text_recherche_nom.Bind(wx.EVT_TEXT, self.OnFilter)
+        self.liste_produits.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClickProduit)
 
         self.__set_properties()
         self.__remplissage_liste()
@@ -110,10 +110,10 @@ class DialogAjoutProduit(wx.Dialog):
     def GetProduit(self):
         return self.liste_produits.GetSelectedObject()
 
-    def onClickProduit(self, event):
+    def OnClickProduit(self, event):
         self.EndModal(wx.ID_OK)
         
-    def onFilter(self, event):
+    def OnFilter(self, event):
         filtre_texte = Filter.TextSearch(self.liste_produits, text=self.text_recherche_nom.GetValue())
         self.liste_produits.SetFilter(filtre_texte)
         self.liste_produits.RepopulateList()
@@ -205,14 +205,14 @@ class FicheInventaire(wx.Panel):
         self.__remplissage_liste()
         self.__do_layout()
 
-        self.combo_box_fournisseur.Bind(wx.EVT_COMBOBOX, self.onFilter)
-        self.text_recherche_nom.Bind(wx.EVT_TEXT, self.onFilter)
-        self.bouton_ajout_produit.Bind(wx.EVT_BUTTON, self.onAjoutProduit)
-        self.liste_lignes_inventaire.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onModifStock)
+        self.combo_box_fournisseur.Bind(wx.EVT_COMBOBOX, self.OnFilter)
+        self.text_recherche_nom.Bind(wx.EVT_TEXT, self.OnFilter)
+        self.bouton_ajout_produit.Bind(wx.EVT_BUTTON, self.OnAjoutProduit)
+        self.liste_lignes_inventaire.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnModifStock)
         self.bouton_enregistrer.Bind(wx.EVT_BUTTON, self.OnEnregistrer)
         self.bouton_valider.Bind(wx.EVT_BUTTON, self.OnValider)
 
-        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
     def __set_properties(self):
         self.label_titre_inventaire.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
@@ -276,7 +276,7 @@ class FicheInventaire(wx.Panel):
         sizer.Fit(self)
         self.Layout()   
 
-    def onAjoutProduit(self, event):
+    def OnAjoutProduit(self, event):
         dlg = DialogAjoutProduit(self.inventaire)
 
         id_resultat = dlg.ShowModal()
@@ -288,7 +288,7 @@ class FicheInventaire(wx.Panel):
 
         dlg.Destroy()
 
-    def onModifStock(self, event):
+    def OnModifStock(self, event):
         self.liste_lignes_inventaire.StartCellEdit(self.liste_lignes_inventaire.GetFocusedRow(), 4)
 
     def OnEnregistrer(self, event):
@@ -317,7 +317,7 @@ class FicheInventaire(wx.Panel):
 
                 event.Skip()
 
-    def onDestroy(self, event):
+    def OnDestroy(self, event):
         dlg = wx.MessageDialog(parent=None, message=u"Voulez vous sauvegarder l'inventaire ?",
                                caption=u"Sauvegarde de la inventaire", style=wx.YES_NO|wx.ICON_QUESTION)
 
@@ -332,7 +332,7 @@ class FicheInventaire(wx.Panel):
 
         event.Skip()
         
-    def onFilter(self, event):
+    def OnFilter(self, event):
         filtre_texte = Filter.TextSearch(self.liste_lignes_inventaire, text=self.text_recherche_nom.GetValue())
 
         pk_fournisseur = self.combo_box_fournisseur.GetClientData(self.combo_box_fournisseur.GetSelection())

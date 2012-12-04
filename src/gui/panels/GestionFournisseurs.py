@@ -48,9 +48,9 @@ class GestionFournisseurs(wx.Panel):
         self.__do_layout()
         self.__remplissage_liste()
 
-        self.Bind(wx.EVT_BUTTON, self.onAjoutFournisseur, self.button_ajout_fournisseur)
-        self.Bind(wx.EVT_BUTTON, self.onGenereTableauFournisseur, self.button_tableau_fournisseur)
-        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onModifFournisseur, self.liste_fournisseurs)
+        self.Bind(wx.EVT_BUTTON, self.OnAjoutFournisseur, self.button_ajout_fournisseur)
+        self.Bind(wx.EVT_BUTTON, self.OnGenereTableauFournisseur, self.button_tableau_fournisseur)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnModifFournisseur, self.liste_fournisseurs)
         # end wxGlade
 
     def __set_properties(self):
@@ -87,7 +87,7 @@ class GestionFournisseurs(wx.Panel):
         couleur_data.SetFromString(couleurHex)
         return wx.EmptyBitmapRGBA(32, 32, couleur_data.Red(), couleur_data.Green(), couleur_data.Blue(), couleur_data.Alpha())
 
-    def onAjoutFournisseur(self, event):
+    def OnAjoutFournisseur(self, event):
         dialog_fournisseur = wx.Dialog(self, title=u"Nouveau fournisseur")
         fiche_fournisseur = FicheFournisseur(dialog_fournisseur)
         dialog_fournisseur.Fit()
@@ -98,7 +98,7 @@ class GestionFournisseurs(wx.Panel):
             self.liste_fournisseurs.AddObject(fiche_fournisseur.fournisseur)
             self.liste_fournisseurs.AutoSizeColumns()
 
-    def onModifFournisseur(self, event):
+    def OnModifFournisseur(self, event):
         fournisseur = self.liste_fournisseurs.GetSelectedObject()
 
         dialog_fournisseur = wx.Dialog(self, title=u"Fournisseur : " + fournisseur.nom)
@@ -111,7 +111,7 @@ class GestionFournisseurs(wx.Panel):
             self.liste_fournisseurs.RefreshObject(self.liste_fournisseurs.GetSelectedObject())
             self.liste_fournisseurs.AutoSizeColumns()
 
-    def onGenereTableauFournisseur(self, event):
+    def OnGenereTableauFournisseur(self, event):
         lst = []
         tableau = []
         tableau_style = []

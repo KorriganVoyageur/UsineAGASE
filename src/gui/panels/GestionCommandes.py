@@ -102,17 +102,17 @@ class GestionCommandes(wx.Panel):
         self.__remplissage_liste()
         self.__affichage_boutons(-1, 0)
 
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelectionCommande, self.liste_commandes)
-        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onVerifLigne, self.liste_lignes_commande)
-        self.Bind(wx.EVT_BUTTON, self.onNouvelleCommande, self.button_nouvelle_commande)
-        self.Bind(wx.EVT_BUTTON, self.onModifier, self.button_Modifier)
-        self.Bind(wx.EVT_BUTTON, self.onSupprimer, self.button_Supprimer)
-        self.Bind(wx.EVT_BUTTON, self.onImprimer, self.button_Imprimer)
-        self.Bind(wx.EVT_BUTTON, self.onPDF, self.button_PDF)
-        self.Bind(wx.EVT_BUTTON, self.onEmail, self.button_Email)
-        self.Bind(wx.EVT_BUTTON, self.onCommandee, self.button_Commandee)
-        self.Bind(wx.EVT_BUTTON, self.onLivree, self.button_Livree)
-        self.Bind(wx.EVT_BUTTON, self.onVerifiee, self.button_Verifiee)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnSelectionCommande, self.liste_commandes)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnVerifLigne, self.liste_lignes_commande)
+        self.Bind(wx.EVT_BUTTON, self.OnNouvelleCommande, self.button_nouvelle_commande)
+        self.Bind(wx.EVT_BUTTON, self.OnModifier, self.button_Modifier)
+        self.Bind(wx.EVT_BUTTON, self.OnSupprimer, self.button_Supprimer)
+        self.Bind(wx.EVT_BUTTON, self.OnImprimer, self.button_Imprimer)
+        self.Bind(wx.EVT_BUTTON, self.OnPDF, self.button_PDF)
+        self.Bind(wx.EVT_BUTTON, self.OnEmail, self.button_Email)
+        self.Bind(wx.EVT_BUTTON, self.OnCommandee, self.button_Commandee)
+        self.Bind(wx.EVT_BUTTON, self.OnLivree, self.button_Livree)
+        self.Bind(wx.EVT_BUTTON, self.OnVerifiee, self.button_Verifiee)
         # end wxGlade
 
     def __set_properties(self):
@@ -289,7 +289,7 @@ class GestionCommandes(wx.Panel):
                     ])
                 self.liste_lignes_commande.AutoSizeColumns()
 
-    def onSelectionCommande(self, event):
+    def OnSelectionCommande(self, event):
         self.commande = self.liste_commandes.GetSelectedObject()
 
         if self.commande:
@@ -317,7 +317,7 @@ class GestionCommandes(wx.Panel):
             self.label_date_livraison_valeur.SetLabel("")
             self.__affichage_boutons(-1, 0)
 
-    def onVerifLigne(self, event):
+    def OnVerifLigne(self, event):
         if self.commande.statut == 2:
             lc_selectionne = self.liste_lignes_commande.GetSelectedObject()
 
@@ -344,17 +344,17 @@ class GestionCommandes(wx.Panel):
 
             dlg.Destroy()
 
-    def onNouvelleCommande(self, event):
+    def OnNouvelleCommande(self, event):
         nouvelle_commande = NouvelleCommande(self.GetTopLevelParent())
         nouvelle_commande.ShowModal()
 
-    def onModifier(self, event):
+    def OnModifier(self, event):
         if self.commande:
             if self.commande.statut < 2:
                 ecranprincipal = self.GetTopLevelParent()
                 ecranprincipal.SetPanelPrincipal(FicheCommande, session_close=False, commande=self.commande)
 
-    def onSupprimer(self, event):
+    def OnSupprimer(self, event):
         if self.commande:
             if self.commande.statut == 0:
                 dlg = wx.MessageDialog(parent=None, message=u"Voulez vous vraiment supprimer la commande ?",
@@ -372,7 +372,7 @@ class GestionCommandes(wx.Panel):
 
                     DATABASE.commit()
 
-    def onPDF(self, event):
+    def OnPDF(self, event):
         if self.commande:
 
             if not self.commande.date_commande:
@@ -392,7 +392,7 @@ class GestionCommandes(wx.Panel):
 
             dlg.Destroy()
 
-    def onEmail(self, event):
+    def OnEmail(self, event):
         if self.commande:
             if self.commande.statut < 2:
                 envoi_email = EnvoiEmailCommande(self, self.commande)
@@ -407,7 +407,7 @@ class GestionCommandes(wx.Panel):
 
                     DATABASE.commit()
 
-    def onImprimer(self, event):
+    def OnImprimer(self, event):
         if self.commande:
             self.commande.genere_PDF(os.getcwd() + "/dernier_bon_imprime.pdf")
 
@@ -422,7 +422,7 @@ class GestionCommandes(wx.Panel):
             preview_pdf.ShowModal()
             preview_pdf.Destroy()'''
 
-    def onCommandee(self, event):
+    def OnCommandee(self, event):
         if self.commande:
             dlg = wx.MessageDialog(parent=None, message=u"La commande a bien été commandée ?",
                                    caption=u"Commande de la commande", style=wx.YES_NO|wx.ICON_QUESTION)
@@ -436,7 +436,7 @@ class GestionCommandes(wx.Panel):
 
             dlg.Destroy()
 
-    def onLivree(self, event):
+    def OnLivree(self, event):
         #TODO : ajouter la possibilité de choisir la date de livraison
         #Ajouter également une vérification sur les prix
         if self.commande:
@@ -452,7 +452,7 @@ class GestionCommandes(wx.Panel):
 
             dlg.Destroy()
 
-    def onVerifiee(self, event):
+    def OnVerifiee(self, event):
         if self.commande:
             commande_verifiee = True
 
