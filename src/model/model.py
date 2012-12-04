@@ -618,17 +618,17 @@ class Commande(BaseModel):
         lst = []
 
         tableau = []
-        tableau.append([Parametre.get(nom="ASSO_nom"),
+        tableau.append([Parametre.get(nom="ASSO_nom").valeur,
                         self.fournisseur.nom])
-        tableau.append([Parametre.get(nom="ASSO_adresse"),
+        tableau.append([Parametre.get(nom="ASSO_adresse").valeur,
                         self.fournisseur.adresse])
-        tableau.append([Parametre.get(nom="ASSO_codepostal") + " " +
-                        Parametre.get(nom="ASSO_ville"),
+        tableau.append([Parametre.get(nom="ASSO_codepostal").valeur + " " +
+                        Parametre.get(nom="ASSO_ville").valeur,
                         self.fournisseur.code_postal + " " +
                         self.fournisseur.ville])
-        tableau.append([Parametre.get(nom="ASSO_telephone"),
+        tableau.append([Parametre.get(nom="ASSO_telephone").valeur,
                         self.fournisseur.telephone()])
-        tableau.append([Parametre.get(nom="ASSO_email"),
+        tableau.append([Parametre.get(nom="ASSO_email").valeur,
                         self.fournisseur.email])
 
         tableau_entete = Table(tableau, ([10 * cm, 8 * cm]))
