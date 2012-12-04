@@ -135,7 +135,7 @@ class FicheFournisseur(wx.Panel):
 
         dlg.Destroy()
 
-    def onEnregistre(self, event):
+    def OnEnregistre(self, event):
         if self.Validate():
             self.fournisseur.nom = self.text_Nom.GetValue()
             self.fournisseur.adresse = self.text_Adresse.GetValue()
@@ -153,6 +153,6 @@ class FicheFournisseur(wx.Panel):
 
             event.Skip()
 
-    def onClose(self, event):
+    def OnClose(self, event):
         #session.rollback()
         event.Skip()

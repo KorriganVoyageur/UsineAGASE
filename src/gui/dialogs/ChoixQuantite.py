@@ -64,7 +64,7 @@ class ChoixQuantite(wx.Dialog):
     def GetValue(self):
         return int(self.text_ctrl_quantite.GetValue())
 
-    def onEnregistrer(self, event):
+    def OnEnregistrer(self, event):
         if self.Validate():
             self.EndModal(wx.ID_OK)
 

@@ -219,7 +219,7 @@ class FicheProduit(wx.Panel):
             self.combo_box_Fournisseur.Select(0)
             self.combo_box_TVA.Select(0)
 
-    def onDefLabelsUnites(self, event):
+    def OnDefLabelsUnites(self, event):
         if self.radio_box_UniteMesure.GetSelection():
             self.label_PoidsVolume.SetLabel("Volume :")
         else:
@@ -249,7 +249,7 @@ class FicheProduit(wx.Panel):
 
             self.text_Conditionnement.SetValidator(GenericTextValidator(flag=VALIDATE_INT))
 
-    def onChoixCategorie(self, event):
+    def OnChoixCategorie(self, event):
         self.produit.categorie = self.combo_box_Categorie.GetClientData(self.combo_box_Categorie.GetSelection())
 
         id_max = Produit.select().where(Produit.categorie == self.produit.categorie).aggregate(fn.Max('id'))
@@ -261,11 +261,11 @@ class FicheProduit(wx.Panel):
 
         self.label_RefGASEV.SetLabel(self.produit.ref_GASE())
 
-    def onClickRetrait(self, event):  # wxGlade: FicheProduit.<event_handler>
+    def OnClickRetrait(self, event):  # wxGlade: FicheProduit.<event_handler>
         self.text_MotifRetrait.Enable(self.checkbox_RetraitProduit.IsChecked())
         event.Skip()
 
-    def onEnregistre(self, event):
+    def OnEnregistre(self, event):
         if self.Validate():
             self.produit.nom = self.text_Nom.GetValue()
             self.produit.fournisseur = self.combo_box_Fournisseur.GetClientData(self.combo_box_Fournisseur.GetSelection())
@@ -292,6 +292,6 @@ class FicheProduit(wx.Panel):
 
             event.Skip()
 
-    def onClose(self, event):
+    def OnClose(self, event):
         #session.rollback()
         event.Skip()

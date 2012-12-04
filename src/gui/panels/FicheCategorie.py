@@ -20,7 +20,7 @@ class FicheCategorie(wx.Panel):
 
         self.categorie = categorie
 
-        self.label_IDCategorie = wx.StaticText(self, -1, u"ID Catégorie :")
+        self.label_IDCategorie = wx.StaticText(self, -1, u"ID Catï¿½gorie :")
         self.combo_box_IDCategorie = wx.ComboBox(self, -1, choices=[],
                                                  style=wx.CB_DROPDOWN |
                                                  wx.CB_READONLY)
@@ -93,7 +93,7 @@ class FicheCategorie(wx.Panel):
 
             self.combo_box_IDCategorie.Select(0)
 
-    def onEnregistre(self, event):
+    def OnEnregistre(self, event):
         if self.Validate():
             self.categorie.nom = self.text_NomCategorie.GetValue()
 
@@ -106,6 +106,6 @@ class FicheCategorie(wx.Panel):
 
             event.Skip()
 
-    def onClose(self, event):
+    def OnClose(self, event):
         #session.rollback()
         event.Skip()

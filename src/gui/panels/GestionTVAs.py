@@ -76,7 +76,7 @@ class GestionTVAs(wx.Panel):
         except BaseException as ex:
             print ex
 
-    def onAjoutTVA(self, event):
+    def OnAjoutTVA(self, event):
         dialog_tva = wx.Dialog(self, title=u"Nouveau taux de TVA")
         fiche_tva = FicheTVA(dialog_tva)
         dialog_tva.Fit()
@@ -87,7 +87,7 @@ class GestionTVAs(wx.Panel):
             self.liste_tvas.AddObject(fiche_tva.tva)
             self.liste_tvas.AutoSizeColumns()
 
-    def onModifTVA(self, event):
+    def OnModifTVA(self, event):
         tva = self.liste_tvas.GetSelectedObject()
 
         dialog_tva = wx.Dialog(self,

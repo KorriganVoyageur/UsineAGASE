@@ -144,12 +144,12 @@ class FicheCommande(wx.Panel):
 
         self.Layout()
 
-    def onFilter(self, event):
+    def OnFilter(self, event):
         filtre_texte = Filter.TextSearch(self.liste_produits, text=self.text_ctrl_FiltreRecherche.GetValue())
         self.liste_produits.SetFilter(filtre_texte)
         self.liste_produits.RepopulateList()
 
-    def onInfosFournisseur(self, event):  # wxGlade: NouvelleCommande.<event_handler>
+    def OnInfosFournisseur(self, event):  # wxGlade: NouvelleCommande.<event_handler>
         message = ""
         message += self.commande.fournisseur.nom + "\n\n"
         message += self.commande.fournisseur.adresse +"\n"
@@ -170,7 +170,7 @@ class FicheCommande(wx.Panel):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def onAjoutProduit(self, event):
+    def OnAjoutProduit(self, event):
         deja_ajoute = False
         produit_selectionne = self.liste_produits.GetSelectedObject()
 
@@ -201,7 +201,7 @@ class FicheCommande(wx.Panel):
 
             dlg.Destroy()
 
-    def onModifProduit(self, event):
+    def OnModifProduit(self, event):
         lc_selectionne = self.liste_lignes_commande.GetSelectedObject()
 
         if lc_selectionne.produit.vrac:
@@ -233,14 +233,14 @@ class FicheCommande(wx.Panel):
 
         dlg.Destroy()
 
-    def onSauvegarder(self, event):
+    def OnSauvegarder(self, event):
         try:
             DATABASE.commit()
             wx.MessageBox(u"La commande a été enregistrée", "Notification")
         except BaseException as ex:
             wx.MessageBox(u"Problème lors de l'enregistrement : %s" % ex, "Erreur")
 
-    def onDestroy(self, event):
+    def OnDestroy(self, event):
         if self.commande.fournisseur != None:
             dlg = wx.MessageDialog(parent=None, message=u"Voulez vous sauvegarder la commande ?",
                                    caption=u"Sauvegarde de la commande", style=wx.YES_NO|wx.ICON_QUESTION)

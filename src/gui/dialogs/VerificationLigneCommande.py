@@ -9,12 +9,12 @@ import model
 ###########################################################################
 
 class VerificationLigneCommande(wx.Dialog):
-    def __init__(self, label_tc="", label_u=u"unité(s)", validator=None, title="", quantite=0, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE):
+    def __init__(self, label_tc="", label_u=u"unitï¿½(s)", validator=None, title="", quantite=0, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE):
         # begin wxGlade: FicheCategorie.__init__
         #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
         wx.Dialog.__init__(self, None, -1, title, pos, size, style)
         self.label_type_conditionnement = wx.StaticText(self, -1, label_tc)
-        self.label_quantite = wx.StaticText(self, -1, u"Quantité :")
+        self.label_quantite = wx.StaticText(self, -1, u"Quantitï¿½ :")
         self.text_ctrl_quantite = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER, validator=validator)
         self.label_unite = wx.StaticText(self, -1, label_u)
         self.button_ok = wx.Button(self, wx.ID_OK, "")
@@ -33,7 +33,7 @@ class VerificationLigneCommande(wx.Dialog):
 
     def __set_properties(self):
         # begin wxGlade: ChoixQuantiteDialog.__set_properties
-        self.SetTitle(u"Quantité")
+        self.SetTitle(u"Quantitï¿½")
         self.text_ctrl_quantite.SetMinSize((80, -1))
         self.text_ctrl_quantite.SetFocus()
         if self.label_type_conditionnement.GetLabel() == "" :
@@ -64,7 +64,7 @@ class VerificationLigneCommande(wx.Dialog):
     def GetValue(self):
         return int(self.text_ctrl_quantite.GetValue())
 
-    def onEnregistrer(self, event):
+    def OnEnregistrer(self, event):
         if self.Validate() :
             self.EndModal(wx.ID_OK)
     

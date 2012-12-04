@@ -147,7 +147,7 @@ class FicheAdherentBase(wx.Panel):
     def GetAdherent(self):
         return self.adherent
 
-    def onEnregistre(self, event):
+    def OnEnregistre(self, event):
         if self.Validate():
             self.adherent.nom = self.text_Nom.GetValue()
             self.adherent.prenom = self.text_Prenom.GetValue()
@@ -168,7 +168,7 @@ class FicheAdherentBase(wx.Panel):
 
             event.Skip()
 
-    def onClose(self, event):
+    def OnClose(self, event):
         event.Skip()
         
 

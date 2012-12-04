@@ -69,7 +69,7 @@ class FicheTVA(wx.Panel):
     def GetTVA(self):
         return self.tva
 
-    def onEnregistre(self, event):
+    def OnEnregistre(self, event):
         if self.Validate():
             self.tva.taux = self.text_TauxTVA.GetValue()
 
@@ -78,5 +78,5 @@ class FicheTVA(wx.Panel):
 
             event.Skip()
 
-    def onClose(self, event):
+    def OnClose(self, event):
         event.Skip()

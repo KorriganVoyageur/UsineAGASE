@@ -110,10 +110,10 @@ class DialogAjoutProduit(wx.Dialog):
     def GetProduit(self):
         return self.liste_produits.GetSelectedObject()
 
-    def onClickProduit(self, event):
+    def OnClickProduit(self, event):
         self.EndModal(wx.ID_OK)
         
-    def onFilter(self, event):
+    def OnFilter(self, event):
         filtre_texte = Filter.TextSearch(self.liste_produits, text=self.text_recherche_nom.GetValue())
         self.liste_produits.SetFilter(filtre_texte)
         self.liste_produits.RepopulateList()
@@ -276,7 +276,7 @@ class FicheInventaire(wx.Panel):
         sizer.Fit(self)
         self.Layout()   
 
-    def onAjoutProduit(self, event):
+    def OnAjoutProduit(self, event):
         dlg = DialogAjoutProduit(self.inventaire)
 
         id_resultat = dlg.ShowModal()
@@ -288,7 +288,7 @@ class FicheInventaire(wx.Panel):
 
         dlg.Destroy()
 
-    def onModifStock(self, event):
+    def OnModifStock(self, event):
         self.liste_lignes_inventaire.StartCellEdit(self.liste_lignes_inventaire.GetFocusedRow(), 4)
 
     def OnEnregistrer(self, event):
@@ -317,7 +317,7 @@ class FicheInventaire(wx.Panel):
 
                 event.Skip()
 
-    def onDestroy(self, event):
+    def OnDestroy(self, event):
         dlg = wx.MessageDialog(parent=None, message=u"Voulez vous sauvegarder l'inventaire ?",
                                caption=u"Sauvegarde de la inventaire", style=wx.YES_NO|wx.ICON_QUESTION)
 
@@ -332,7 +332,7 @@ class FicheInventaire(wx.Panel):
 
         event.Skip()
         
-    def onFilter(self, event):
+    def OnFilter(self, event):
         filtre_texte = Filter.TextSearch(self.liste_lignes_inventaire, text=self.text_recherche_nom.GetValue())
 
         pk_fournisseur = self.combo_box_fournisseur.GetClientData(self.combo_box_fournisseur.GetSelection())
