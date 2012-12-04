@@ -338,6 +338,11 @@ class Adherent(BaseModel):
                 return True
 
         return False
+    
+    @property
+    def fournisseurs(self):
+        """Renvoie tous les fournisseurs pour lesquels l'adhérent est référent"""
+        return Fournisseur.select().join(Referent).join(Adherent).where(Adherent.id == self)
 
     class Meta:
         db_table = 'adherents'
@@ -896,11 +901,6 @@ class Inventaire(BaseModel):
     @property
     def produits(self):
         return Produit.select().join(LigneInventaire).where(LigneInventaire.inventaire == self)
-
-    @property
-    def produits_absents(self):
-        query = Produit.select().where(~(Produit.pk << self.produits))
-        return query
 
     class Meta:
         db_table = 'inventaires'

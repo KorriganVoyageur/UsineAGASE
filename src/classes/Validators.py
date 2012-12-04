@@ -26,15 +26,16 @@ class BaseValidator(wx.PyValidator):
     #   return BaseValidator()
 
     def WxErrorDialog(self, msg, txtctrl=None):
+        dlg = wx.MessageDialog(None, msg, "Erreur", style=wx.OK|wx.ICON_ERROR|wx.CENTRE)
+        dlg.ShowModal()
+        dlg.Destroy()
+        
         if txtctrl == None:
             txtctrl = self.win
 
         txtctrl.SetBackgroundColour('#ffcccc')
         txtctrl.SetFocus()
         txtctrl.Refresh()
-        dlg = wx.MessageDialog(None, msg, "Erreur", style=wx.OK|wx.ICON_ERROR|wx.CENTRE)
-        dlg.ShowModal()
-        dlg.Destroy()
 
     def WxClearErrorDialog(self):
         self.win.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
