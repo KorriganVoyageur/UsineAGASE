@@ -872,7 +872,7 @@ class Inventaire(BaseModel):
     """
 
     date = DateField(default=date.today())
-    commentaire = TextField(default="")
+    commentaire = TextField(default=u"Ajouter ici toutes les choses à notre sur cet inventaire")
     is_valide = BooleanField(default=False)
 
     def initialisation(self):

@@ -60,6 +60,8 @@ class DialogAjoutProduit(wx.Dialog):
 
         self.inventaire = inventaire
 
+        self.label_recherche_nom = wx.StaticText(self, -1, "Recherche sur le nom : ")
+        self.text_recherche_nom = wx.TextCtrl(self, -1, "")
         self.liste_produits = ObjectListView(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
 
         self.liste_produits.SetColumns([
@@ -68,6 +70,7 @@ class DialogAjoutProduit(wx.Dialog):
             ColumnDefn("Fournisseur", "left", -1, "fournisseur.nom", minimumWidth=100)
         ])
 
+        self.text_recherche_nom.Bind(wx.EVT_TEXT, self.onFilter)
         self.liste_produits.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onClickProduit)
 
         self.__set_properties()
@@ -76,7 +79,7 @@ class DialogAjoutProduit(wx.Dialog):
         # end wxGlade
 
     def __set_properties(self):
-        pass
+        self.SetMinSize((400,300))
     
     def __remplissage_liste(self):
         try:
@@ -93,17 +96,28 @@ class DialogAjoutProduit(wx.Dialog):
             print ex
 
     def __do_layout(self):
+        sizer_entete = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_entete.Add(self.label_recherche_nom, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_entete.Add(self.text_recherche_nom, 1, 0, 0)
+    
         sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(sizer_entete, 0, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
         sizer.Add(self.liste_produits, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
 
-    """def GetValue(self):
-        return int(self.text_ctrl_quantite.GetValue())"""
+    def GetProduit(self):
+        return self.liste_produits.GetSelectedObject()
 
     def onClickProduit(self, event):
-        pass
+        self.EndModal(wx.ID_OK)
+        
+    def onFilter(self, event):
+        filtre_texte = Filter.TextSearch(self.liste_produits, text=self.text_recherche_nom.GetValue())
+        self.liste_produits.SetFilter(filtre_texte)
+        self.liste_produits.RepopulateList()
+        event.Skip()
 
 
 ###########################################################################
@@ -130,7 +144,7 @@ class FicheInventaire(wx.Panel):
                                                  choices=[], style=wx.CB_DROPDOWN|wx.CB_READONLY)
         self.label_recherche_nom = wx.StaticText(self, -1, "Recherche sur le nom :")
         self.text_recherche_nom = wx.TextCtrl(self, -1, "")
-        self.label_commentaire = wx.StaticText(self, -1, "Commentaire")
+        self.label_commentaire = wx.StaticText(self, -1, "Commentaires :")
         self.text_commentaire = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
         self.bouton_ajout_produit = GenBitmapTextButton(self, -1, wx.Bitmap("../icons/16x16/ajouter.ico"), u" Ajouter un produit non listé")
         self.liste_lignes_inventaire = ObjectListView(self, -1,
@@ -202,7 +216,7 @@ class FicheInventaire(wx.Panel):
 
     def __set_properties(self):
         self.label_titre_inventaire.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
-        self.text_commentaire.SetMinSize((400, 200))
+        self.text_commentaire.SetMinSize((-1, 200))
         self.label_fournisseur.SetMinSize((200, -1))
         self.combo_box_fournisseur.SetMinSize((200, -1))
         self.label_recherche_nom.SetMinSize((200, -1))
@@ -231,21 +245,17 @@ class FicheInventaire(wx.Panel):
             print ex
             
     def __do_layout(self):
-        # begin wxGlade: FicheInventaire.__do_layout
-        sizer_bouton = wx.BoxSizer(wx.HORIZONTAL)
-
-        grid_sizer = wx.FlexGridSizer(3, 2, 5, 10)
-        grid_sizer.Add(self.label_commentaire, 0, wx.ALIGN_TOP, 0)
-        grid_sizer.Add(self.text_commentaire, 1, 0, 0)
-        grid_sizer.Add(self.label_fournisseur, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer.Add(self.combo_box_fournisseur, 0, 0, 0)
-        grid_sizer.Add(self.label_recherche_nom, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer.Add(self.text_recherche_nom, 0, 0, 0)
+        sizer_recherche = wx.FlexGridSizer(2, 2, 5, 10)
+        sizer_recherche.Add(self.label_fournisseur, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_recherche.Add(self.combo_box_fournisseur, 0, 0, 0)
+        sizer_recherche.Add(self.label_recherche_nom, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_recherche.Add(self.text_recherche_nom, 0, 0, 0)
 
         sizer_inventaire = wx.StaticBoxSizer(self.sizer_inventaire_staticbox, wx.VERTICAL)
         sizer_inventaire.Add(self.liste_lignes_inventaire, 1, wx.ALL|wx.EXPAND, 0)
         sizer_inventaire.Add(self.bouton_ajout_produit, 0, wx.TOP, 10)
 
+        sizer_bouton = wx.BoxSizer(wx.HORIZONTAL)
         sizer_bouton.Add((20, 20), 1, 0, 0)
         sizer_bouton.Add(self.bouton_enregistrer, 0, 0, 0)
         sizer_bouton.Add((20, 20), 1, 0, 0)
@@ -256,7 +266,9 @@ class FicheInventaire(wx.Panel):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.label_titre_inventaire, 0, wx.ALL|wx.EXPAND, 10)
-        sizer.Add(grid_sizer, 0, wx.ALL|wx.EXPAND, 10)
+        sizer.Add(self.label_commentaire, 0, wx.ALL|wx.EXPAND, 10)
+        sizer.Add(self.text_commentaire, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
+        sizer.Add(sizer_recherche, 0, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
         sizer.Add(sizer_inventaire, 1, wx.ALL|wx.EXPAND, 10)
         sizer.Add(sizer_bouton, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
 
@@ -270,9 +282,9 @@ class FicheInventaire(wx.Panel):
         id_resultat = dlg.ShowModal()
 
         if id_resultat == wx.ID_OK:
-            print "ok"
-        elif id_resultat == wx.ID_DELETE:
-            print "delete"
+            ligne_inventaire = LigneInventaire.create(inventaire=self.inventaire, produit=dlg.GetProduit())
+            self.liste_lignes_inventaire.AddObject(ligne_inventaire)
+            self.liste_lignes_inventaire.SelectObject(ligne_inventaire, ensureVisible=True)
 
         dlg.Destroy()
 
@@ -285,6 +297,7 @@ class FicheInventaire(wx.Panel):
 
             if msgbox == wx.YES:
                 self.inventaire.date = date.today()
+                self.inventaire.commentaire = self.text_commentaire.GetValue()
 
                 with DATABASE.transaction():
                     self.inventaire.save()
