@@ -2,10 +2,11 @@
 # -*- coding: iso-8859-15 -*-
 
 import wx
-from model.model import Inventaire, Fournisseur, DATABASE
+from model.model import Inventaire, LigneInventaire, Fournisseur, Produit, DATABASE
 
 from lib.objectlistview import ObjectListView, ColumnDefn, CellEditor, Filter
 from datetime import date
+from wx.lib.buttons import GenBitmapTextButton
 
 
 class StockIntEditor(CellEditor.BaseCellTextEditor):
@@ -50,6 +51,62 @@ class StockFloatEditor(CellEditor.BaseCellTextEditor):
         wx.TextCtrl.SetValue(self, value)
 
 ###########################################################################
+## Class DialogAjoutProduit
+###########################################################################
+
+class DialogAjoutProduit(wx.Dialog):
+    def __init__(self, inventaire):
+        wx.Dialog.__init__(self, None, -1, title=u"Ajouter un produit", pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE)
+
+        self.inventaire = inventaire
+
+        self.liste_produits = ObjectListView(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+
+        self.liste_produits.SetColumns([
+            ColumnDefn("Ref GASE", "left", -1, "ref_GASE", fixedWidth=90),
+            ColumnDefn("Nom", "left", -1, "nom"),
+            ColumnDefn("Fournisseur", "left", -1, "fournisseur.nom", minimumWidth=100)
+        ])
+
+        self.liste_produits.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onClickProduit)
+
+        self.__set_properties()
+        self.__remplissage_liste()
+        self.__do_layout()
+        # end wxGlade
+
+    def __set_properties(self):
+        pass
+    
+    def __remplissage_liste(self):
+        try:
+            self.liste_produits.SetObjects([p for p in self.inventaire.produits_absents])
+            
+            #On dimentionne le dialog selon la largeur des colonnes
+            largeur = 0
+            for num_colonne in range(3) :
+                largeur += self.liste_produits.GetColumnWidth(num_colonne)
+             
+            self.liste_produits.SetMinSize((largeur+20,300))
+            
+        except BaseException as ex:
+            print ex
+
+    def __do_layout(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.liste_produits, 1, wx.ALL|wx.EXPAND, 10)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    """def GetValue(self):
+        return int(self.text_ctrl_quantite.GetValue())"""
+
+    def onClickProduit(self, event):
+        pass
+
+
+###########################################################################
 ## Class FicheInventaire
 ###########################################################################
 
@@ -75,6 +132,7 @@ class FicheInventaire(wx.Panel):
         self.text_recherche_nom = wx.TextCtrl(self, -1, "")
         self.label_commentaire = wx.StaticText(self, -1, "Commentaire")
         self.text_commentaire = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
+        self.bouton_ajout_produit = GenBitmapTextButton(self, -1, wx.Bitmap("../icons/16x16/ajouter.ico"), u" Ajouter un produit non listé")
         self.liste_lignes_inventaire = ObjectListView(self, -1,
                                                       style=wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL)
 
@@ -112,7 +170,7 @@ class FicheInventaire(wx.Panel):
                        cellEditorCreator = editor_stock_reel,
                        valueSetter=update_stock_reel, minimumWidth=80),
             ColumnDefn(u"Différence", "u_", -1,
-                       "stock_difference", isSpaceFilling=True, minimumWidth=80)
+                       "stock_difference", minimumWidth=80)
         ])
 
         def RFLignesInventaire(listItem, ligne_inventaire):
@@ -135,6 +193,7 @@ class FicheInventaire(wx.Panel):
 
         self.combo_box_fournisseur.Bind(wx.EVT_COMBOBOX, self.onFilter)
         self.text_recherche_nom.Bind(wx.EVT_TEXT, self.onFilter)
+        self.bouton_ajout_produit.Bind(wx.EVT_BUTTON, self.onAjoutProduit)
         self.liste_lignes_inventaire.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onModifStock)
         self.bouton_enregistrer.Bind(wx.EVT_BUTTON, self.OnEnregistrer)
         self.bouton_valider.Bind(wx.EVT_BUTTON, self.OnValider)
@@ -183,8 +242,9 @@ class FicheInventaire(wx.Panel):
         grid_sizer.Add(self.label_recherche_nom, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer.Add(self.text_recherche_nom, 0, 0, 0)
 
-        sizer_inventaire = wx.StaticBoxSizer(self.sizer_inventaire_staticbox, wx.HORIZONTAL)
+        sizer_inventaire = wx.StaticBoxSizer(self.sizer_inventaire_staticbox, wx.VERTICAL)
         sizer_inventaire.Add(self.liste_lignes_inventaire, 1, wx.ALL|wx.EXPAND, 0)
+        sizer_inventaire.Add(self.bouton_ajout_produit, 0, wx.TOP, 10)
 
         sizer_bouton.Add((20, 20), 1, 0, 0)
         sizer_bouton.Add(self.bouton_enregistrer, 0, 0, 0)
@@ -203,6 +263,18 @@ class FicheInventaire(wx.Panel):
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()   
+
+    def onAjoutProduit(self, event):
+        dlg = DialogAjoutProduit(self.inventaire)
+
+        id_resultat = dlg.ShowModal()
+
+        if id_resultat == wx.ID_OK:
+            print "ok"
+        elif id_resultat == wx.ID_DELETE:
+            print "delete"
+
+        dlg.Destroy()
 
     def onModifStock(self, event):
         self.liste_lignes_inventaire.StartCellEdit(self.liste_lignes_inventaire.GetFocusedRow(), 4)
