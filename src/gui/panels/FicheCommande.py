@@ -28,14 +28,14 @@ class FicheCommande(wx.Panel):
         self.sizer_commande_staticbox = wx.StaticBox(self, -1, "Commande")
         self.sizer_fournisseur_produits_staticbox = wx.StaticBox(self, -1, "Liste des produits")
         self.label_titre_commande = wx.StaticText(self, -1, "Commande pour ")
-        self.button_infos_fournisseur = wx.Button(self, -1, "Afficher les infos du fournisseur")
+        self.bouton_infos_fournisseur = wx.Button(self, -1, "Afficher les infos du fournisseur")
         self.label_FiltreRecherche = wx.StaticText(self, -1, "Recherche sur le nom :")
         self.text_ctrl_FiltreRecherche = wx.TextCtrl(self, -1, "")
         self.liste_produits = ObjectListView(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.label_total = wx.StaticText(self, -1, "Total de la commande :")
         self.label_total_valeur = wx.StaticText(self, -1, u"0.00 ¤", style=wx.ALIGN_RIGHT)
         self.liste_lignes_commande = ObjectListView(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.button_Sauvegarder = wx.Button(self, -1, "Enregistrer la commande")
+        self.bouton_Sauvegarder = wx.Button(self, -1, "Enregistrer la commande")
 
         self.liste_produits.SetColumns([
             ColumnDefn("Ref GASE", "left", -1, "ref_GASE", minimumWidth=100),
@@ -60,8 +60,8 @@ class FicheCommande(wx.Panel):
         self.__set_values()
         self.__do_layout()
 
-        self.Bind(wx.EVT_BUTTON, self.OnInfosFournisseur, self.button_infos_fournisseur)
-        self.Bind(wx.EVT_BUTTON, self.OnSauvegarder, self.button_Sauvegarder)
+        self.Bind(wx.EVT_BUTTON, self.OnInfosFournisseur, self.bouton_infos_fournisseur)
+        self.Bind(wx.EVT_BUTTON, self.OnSauvegarder, self.bouton_Sauvegarder)
         self.Bind(wx.EVT_TEXT, self.OnFilter, self.text_ctrl_FiltreRecherche)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnAjoutProduit, self.liste_produits)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnModifProduit, self.liste_lignes_commande)
@@ -79,7 +79,7 @@ class FicheCommande(wx.Panel):
 
     def __set_values(self):
         if self.commande.fournisseur:
-            self.setFournisseur(self.commande.fournisseur)
+            self.SetFournisseur(self.commande.fournisseur)
             self.liste_lignes_commande.SetObjects([lc for lc in self.commande.lignes_commande])
             self.label_total_valeur.SetLabel(u"%.2f ¤" % self.commande.total_commande_TTC())
 
@@ -95,7 +95,7 @@ class FicheCommande(wx.Panel):
         sizer_fitre_recherche = wx.BoxSizer(wx.HORIZONTAL)
 
         sizer_entete.Add(self.label_titre_commande, 1, wx.EXPAND, 0)
-        sizer_entete.Add(self.button_infos_fournisseur, 0, wx.EXPAND, 0)
+        sizer_entete.Add(self.bouton_infos_fournisseur, 0, wx.EXPAND, 0)
         sizer.Add(sizer_entete, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
 
         sizer_fitre_recherche.Add(self.label_FiltreRecherche, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 6)
@@ -112,7 +112,7 @@ class FicheCommande(wx.Panel):
         sizer_commande.Add(self.liste_lignes_commande, 1, wx.EXPAND, 0)
         sizer.Add(sizer_commande, 1, wx.EXPAND, 0)
 
-        sizer_boutons.Add(self.button_Sauvegarder, 0, 0, 0)
+        sizer_boutons.Add(self.bouton_Sauvegarder, 0, 0, 0)
         sizer.Add(sizer_boutons, 0, wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, 6)
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -127,7 +127,7 @@ class FicheCommande(wx.Panel):
         self.label_total_valeur.SetLabel(u"%.2f ¤" % total)
         self.Layout()
 
-    def setFournisseur(self, fournisseur):
+    def SetFournisseur(self, fournisseur):
         self.commande.fournisseur = fournisseur
 
         self.label_titre_commande.SetLabel("Commande pour " + self.commande.fournisseur.nom)
@@ -179,19 +179,14 @@ class FicheCommande(wx.Panel):
                 break
 
         if deja_ajoute == False:
-            if produit_selectionne.vrac:
-                label_type_conditionnement = ""
-                label_u = produit_selectionne.conditionnement_format(majuscule=False)
-            else:
-                label_type_conditionnement = produit_selectionne.conditionnement_format()
-                label_u = u"unité(s)"
-
-            dlg = ChoixQuantite(label_type_conditionnement, label_u, validator=GenericTextValidator(flag=VALIDATE_INT))
+            lc = LigneCommande(commande=self.commande, produit=produit_selectionne)
+            
+            dlg = DialogChoixQuantite(lc)
 
             if dlg.ShowModal() == wx.ID_OK:
-                if dlg.GetValue() != 0:
-                    #lc = self.commande.ajout_ligne_commande(produit_selectionne, dlg.GetValue())
-                    lc = LigneCommande.create(commande=self.commande, produit=produit_selectionne, quantite_commandee=dlg.GetValue())
+                if dlg.GetQuantite() != 0:
+                    lc.quantite_commandee = dlg.GetQuantite()
+                    lc.save()
                     self.liste_lignes_commande.AddObject(lc)
                     self.liste_lignes_commande.AutoSizeColumns()
 
@@ -201,30 +196,21 @@ class FicheCommande(wx.Panel):
             dlg.Destroy()
 
     def OnModifProduit(self, event):
-        lc_selectionne = self.liste_lignes_commande.GetSelectedObject()
+        lc_selectionnee = self.liste_lignes_commande.GetSelectedObject()
 
-        if lc_selectionne.produit.vrac:
-            label_type_conditionnement = ""
-            label_u = lc_selectionne.produit.conditionnement_format(majuscule=False)
-            quantite_commandee = lc_selectionne.quantite_commandee /1000
-        else:
-            label_type_conditionnement = lc_selectionne.produit.conditionnement_format()
-            label_u = u"unité(s)"
-            quantite_commandee = lc_selectionne.quantite_commandee
-
-        dlg = ChoixQuantite(label_type_conditionnement, label_u, quantite=quantite_commandee, validator=GenericTextValidator(flag=VALIDATE_INT))
+        dlg = DialogChoixQuantite(lc_selectionnee)
 
         id_resultat = dlg.ShowModal()
 
-        if id_resultat == wx.ID_OK and dlg.GetValue() != 0:
-            lc_selectionne.quantite_commandee = dlg.GetValue()
-            lc_selectionne.save()
-            self.liste_lignes_commande.RefreshObject(lc_selectionne)
+        if id_resultat == wx.ID_OK and dlg.GetQuantite() != 0:
+            lc_selectionnee.quantite_commandee = dlg.GetQuantite()
+            lc_selectionnee.save()
+            self.liste_lignes_commande.RefreshObject(lc_selectionnee)
             self.liste_lignes_commande.AutoSizeColumns()
-        elif id_resultat == wx.ID_DELETE or dlg.GetValue() == 0:
-            self.liste_lignes_commande.RemoveObject(lc_selectionne)
-            self.liste_lignes_commande.RefreshObject(lc_selectionne)
-            lc_selectionne.delete_instance()
+        elif id_resultat == wx.ID_DELETE or dlg.GetQuantite() == 0:
+            self.liste_lignes_commande.RemoveObject(lc_selectionnee)
+            self.liste_lignes_commande.RefreshObject(lc_selectionnee)
+            lc_selectionnee.delete_instance()
             self.liste_lignes_commande.AutoSizeColumns()
 
         #Mise à jour du total de la commande
@@ -259,61 +245,71 @@ class FicheCommande(wx.Panel):
 ###########################################################################
 
 
-class ChoixQuantite(wx.Dialog):
-    def __init__(self, label_tc="", label_u=u"unité(s)", validator=None, title="", quantite=0, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE):
-        # begin wxGlade: FicheCategorie.__init__
-        #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
-        wx.Dialog.__init__(self, None, -1, title, pos, size, style)
-        self.label_type_conditionnement = wx.StaticText(self, -1, label_tc)
-        self.label_quantite = wx.StaticText(self, -1, u"Quantité :")
-        self.text_ctrl_quantite = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER, validator=validator)
-        self.label_unite = wx.StaticText(self, -1, label_u)
-        self.button_ok = wx.Button(self, wx.ID_OK, "")
-        if quantite > 0:
-            self.text_ctrl_quantite.SetValue(str(quantite))
-            self.button_annuler = wx.Button(self, wx.ID_DELETE, "Supprimer")
-            self.Bind(wx.EVT_BUTTON, self.OnSupprimer, self.button_annuler)
-        else:
-            self.button_annuler = wx.Button(self, wx.ID_CANCEL, "")
+class DialogChoixQuantite(wx.Dialog):
+    def __init__(self, ligne_commande):
+        wx.Dialog.__init__(self, None, -1, u"Quantité", pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE)
 
-        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnregistrer, self.text_ctrl_quantite)
+        self.ligne_commande = ligne_commande
+
+        self.label_type_conditionnement = wx.StaticText(self, -1, "Label type")
+        self.label_quantite = wx.StaticText(self, -1, u"Quantité :")
+        self.text_quantite = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER, validator=GenericTextValidator(flag=VALIDATE_INT))
+        self.label_unite = wx.StaticText(self, -1, "Label unite")
+        self.bouton_ok = wx.Button(self, wx.ID_OK, "")
+        self.bouton_annuler = wx.Button(self, wx.ID_CANCEL, "")
+
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnregistrer, self.text_quantite)
 
         self.__set_properties()
+        self.__set_valeurs()
         self.__do_layout()
         # end wxGlade
 
     def __set_properties(self):
-        # begin wxGlade: ChoixQuantiteDialog.__set_properties
-        self.SetTitle(u"Quantité")
-        self.text_ctrl_quantite.SetMinSize((80, -1))
-        self.text_ctrl_quantite.SetFocus()
-        if self.label_type_conditionnement.GetLabel() == "":
+        self.text_quantite.SetMinSize((80, -1))
+        self.text_quantite.SetFocus()
+        if self.ligne_commande.produit.vrac:
             self.label_type_conditionnement.Hide()
-        # end wxGlade
+        
+    def __set_valeurs(self):
+        if self.ligne_commande.produit.vrac:
+            self.label_unite.SetLabel(self.ligne_commande.produit.conditionnement_format(majuscule=False))
+            self.text_quantite.SetValue(str(self.ligne_commande.quantite_commandee / self.ligne_commande.produit.poids_volume))
+        else:
+            self.label_type_conditionnement.SetLabel(self.ligne_commande.produit.conditionnement_format())
+            self.label_unite.SetLabel(u"unité(s)")
+            self.text_quantite.SetValue(str(self.ligne_commande.quantite_commandee))
+            
+        if self.ligne_commande.quantite_commandee > 0:
+            self.bouton_annuler.SetLabel("Supprimer")
+            self.bouton_annuler.SetId(wx.ID_DELETE)
+            self.bouton_annuler.Bind(wx.EVT_BUTTON, self.OnSupprimer)
 
     def __do_layout(self):
-        # begin wxGlade: ChoixQuantiteDialog.__do_layout
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.label_type_conditionnement, 0, wx.ALIGN_CENTER|wx.TOP, 5)
-        sizer_boutons = wx.BoxSizer(wx.HORIZONTAL)
         sizer_choix = wx.BoxSizer(wx.HORIZONTAL)
         sizer_choix.Add(self.label_quantite, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        sizer_choix.Add(self.text_ctrl_quantite, 0, wx.LEFT|wx.RIGHT, 6)
+        sizer_choix.Add(self.text_quantite, 0, wx.LEFT|wx.RIGHT, 6)
         sizer_choix.Add(self.label_unite, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+
+        sizer_boutons = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_boutons.Add((1, 1), 1, wx.EXPAND, 0)
+        sizer_boutons.Add(self.bouton_ok, 0, 0, 0)
+        sizer_boutons.Add((1, 1), 1, wx.EXPAND, 0)
+        sizer_boutons.Add(self.bouton_annuler, 0, 0, 0)
+        sizer_boutons.Add((1, 1), 1, wx.EXPAND, 0)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.label_type_conditionnement, 0, wx.ALIGN_CENTER|wx.TOP, 5)
         sizer.Add(sizer_choix, 0, wx.ALL|wx.EXPAND, 5)
-        sizer_boutons.Add((1, 1), 1, wx.EXPAND, 0)
-        sizer_boutons.Add(self.button_ok, 0, 0, 0)
-        sizer_boutons.Add((1, 1), 1, wx.EXPAND, 0)
-        sizer_boutons.Add(self.button_annuler, 0, 0, 0)
-        sizer_boutons.Add((1, 1), 1, wx.EXPAND, 0)
         sizer.Add(sizer_boutons, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 5)
+
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
         # end wxGlade
 
-    def GetValue(self):
-        return int(self.text_ctrl_quantite.GetValue())
+    def GetQuantite(self):
+        return int(self.text_quantite.GetValue())
 
     def OnEnregistrer(self, event):
         if self.Validate():
