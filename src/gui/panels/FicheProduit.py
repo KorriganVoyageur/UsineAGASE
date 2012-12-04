@@ -210,12 +210,12 @@ class FicheProduit(wx.Panel):
                 self.text_MotifRetrait.Enable()
                 self.text_MotifRetrait.SetValue(self.produit.motif_retrait)
 
-            self.onDefLabelsUnites(None)
+            self.OnDefLabelsUnites(None)
 
         else:
             self.label_CategorieV.Hide()
             self.combo_box_Categorie.Select(0)
-            self.onChoixCategorie(None)
+            self.OnChoixCategorie(None)
             self.combo_box_Fournisseur.Select(0)
             self.combo_box_TVA.Select(0)
 

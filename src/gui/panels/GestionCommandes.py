@@ -368,7 +368,7 @@ class GestionCommandes(wx.Panel):
 
                     self.commande = None
 
-                    self.onSelectionCommande(None)
+                    self.OnSelectionCommande(None)
 
                     DATABASE.commit()
 
@@ -403,7 +403,7 @@ class GestionCommandes(wx.Panel):
                     self.commande.statut(1)
                     self.commande.save()
                     self.liste_commandes.RefreshObject(self.commande)
-                    self.onSelectionCommande(None)
+                    self.OnSelectionCommande(None)
 
                     DATABASE.commit()
 
@@ -431,7 +431,7 @@ class GestionCommandes(wx.Panel):
                 self.commande.statut = 1
                 self.commande.save()
                 self.liste_commandes.RefreshObject(self.commande)
-                self.onSelectionCommande(None)
+                self.OnSelectionCommande(None)
                 DATABASE.commit()
 
             dlg.Destroy()
@@ -447,7 +447,7 @@ class GestionCommandes(wx.Panel):
                 self.commande.statut = 2
                 self.commande.save()
                 self.liste_commandes.RefreshObject(self.commande)
-                self.onSelectionCommande(None)
+                self.OnSelectionCommande(None)
                 DATABASE.commit()
 
             dlg.Destroy()
@@ -472,7 +472,7 @@ class GestionCommandes(wx.Panel):
                     self.commande.save()
 
                     self.liste_commandes.RefreshObject(self.commande)
-                    self.onSelectionCommande(None)
+                    self.OnSelectionCommande(None)
 
                     with DATABASE.transaction():
                         DATABASE.commit()
