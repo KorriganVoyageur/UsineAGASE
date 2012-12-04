@@ -892,6 +892,15 @@ class Inventaire(BaseModel):
                 break
             
         return pret
+    
+    @property
+    def produits(self):
+        return Produit.select().join(LigneInventaire).where(LigneInventaire.inventaire == self)
+
+    @property
+    def produits_absents(self):
+        query = Produit.select().where(~(Produit.pk << self.produits))
+        return query
 
     class Meta:
         db_table = 'inventaires'
