@@ -95,9 +95,12 @@ class FicheAdherent(wx.Panel):
             self.notebook.ChangeSelection(0)
             control.SetFocus()
             DATABASE.rollback()
+            
+        event.Skip()
 
     def OnClose(self, event):
         DATABASE.rollback()
+        event.Skip()
 
 
 ###########################################################################
@@ -428,7 +431,8 @@ class GestionFournisseurs(wx.Panel):
 
         if msgbox == wx.YES:
             with DATABASE.transaction():
-                fournisseur.delete_instance()
+                referent = Referent.select().where((Referent.adherent == self.adherent) and (Referent.fournisseur == fournisseur)).get()
+                referent.delete_instance()
 
             self.liste_fournisseurs.RemoveObject(fournisseur)
 
