@@ -286,7 +286,7 @@ class GestionAdhesions(wx.Panel):
         self.bouton_supprime_adhesion.Disable()
         
         self.liste_adhesions.SetEmptyListMsg(u"Aucune adhésion")
-        self.liste_adhesions.sort(1, False)
+        self.liste_adhesions.SortBy(1, False)
 
     def __do_layout(self):
         sizer_boutons = wx.BoxSizer(wx.HORIZONTAL)
