@@ -16,7 +16,7 @@ class FicheProduit(wx.Panel):
         wx.Panel.__init__(self, parent, style=wx.TAB_TRAVERSAL)
 
         if produit == None:
-            produit = Produit.create()
+            produit = Produit()
 
         self.produit = produit
 
@@ -27,7 +27,6 @@ class FicheProduit(wx.Panel):
         self.label_Categorie = wx.StaticText(self, -1, u"Catégorie :")
         self.combo_box_Categorie = wx.ComboBox(self, -1, choices=[],
                                                style=wx.CB_DROPDOWN|wx.CB_READONLY)
-        self.label_CategorieV = wx.StaticText(self, -1, "XXXXXX")
         self.label_Fournisseur = wx.StaticText(self, -1, "Fournisseur :")
         self.combo_box_Fournisseur = wx.ComboBox(self, -1, choices=[],
                                                  style=wx.CB_DROPDOWN|wx.CB_READONLY)
@@ -122,8 +121,11 @@ class FicheProduit(wx.Panel):
         if self.produit.get_id() != None:
             self.text_Nom.SetValue(self.produit.nom)
             self.label_RefGASEV.SetLabel(self.produit.ref_GASE())
-            self.combo_box_Categorie.Hide()
-            self.label_CategorieV.SetLabel(self.produit.categorie.nom)
+            
+            for i in range(len(self.combo_box_Categorie.GetItems())):
+                if self.produit.categorie == self.combo_box_Categorie.GetClientData(i):
+                    self.combo_box_Categorie.Select(i)
+                    break
 
             for i in range(len(self.combo_box_Fournisseur.GetItems())):
                 if self.produit.fournisseur == self.combo_box_Fournisseur.GetClientData(i):
@@ -158,7 +160,6 @@ class FicheProduit(wx.Panel):
             self.OnChangePrix(None)
 
         else:
-            self.label_CategorieV.Hide()
             self.combo_box_Categorie.Select(0)
             self.OnChoixCategorie(None)
             self.combo_box_Fournisseur.Select(0)
@@ -173,15 +174,12 @@ class FicheProduit(wx.Panel):
         sizer_PrixAchat = wx.BoxSizer(wx.HORIZONTAL)
         sizer_UnitesParCarton = wx.BoxSizer(wx.HORIZONTAL)
         sizer_PoidsVolume = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_Categorie = wx.BoxSizer(wx.HORIZONTAL)
         grid_sizer.Add(self.label_Nom, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer.Add(self.text_Nom, 0, wx.EXPAND, 0)
         grid_sizer.Add(self.label_RefGASE, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM, 5)
         grid_sizer.Add(self.label_RefGASEV, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM, 5)
         grid_sizer.Add(self.label_Categorie, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        sizer_Categorie.Add(self.combo_box_Categorie, 1, wx.EXPAND, 0)
-        sizer_Categorie.Add(self.label_CategorieV, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer.Add(sizer_Categorie, 1, wx.EXPAND, 0)
+        grid_sizer.Add(self.combo_box_Categorie, 0, wx.EXPAND, 0)
         grid_sizer.Add(self.label_Fournisseur, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer.Add(self.combo_box_Fournisseur, 0, wx.EXPAND, 0)
         grid_sizer.Add(self.label_RefFournisseur, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -256,7 +254,7 @@ class FicheProduit(wx.Panel):
     def OnChoixCategorie(self, event):
         self.produit.categorie = self.combo_box_Categorie.GetClientData(self.combo_box_Categorie.GetSelection())
 
-        id_max = Produit.select().where(Produit.categorie == self.produit.categorie).aggregate(fn.Max('id'))
+        id_max = Produit.select().where(Produit.categorie == self.produit.categorie).aggregate(fn.Max(Produit.id))
 
         if id_max == None:
             self.produit.id = 1
