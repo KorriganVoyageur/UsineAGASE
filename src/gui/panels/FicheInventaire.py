@@ -6,7 +6,7 @@ from model.model import Inventaire, LigneInventaire, Fournisseur, Produit, DATAB
 
 from lib.objectlistview import ObjectListView, ColumnDefn, CellEditor, Filter
 from datetime import date
-from wx.lib.buttons import GenBitmapTextButton
+from wx.lib import buttons
 
 
 ###########################################################################
@@ -31,11 +31,10 @@ class FicheInventaire(wx.Panel):
         self.label_fournisseur = wx.StaticText(self, -1, "Fournisseur :")
         self.combo_box_fournisseur = wx.ComboBox(self, -1,
                                                  choices=[], style=wx.CB_DROPDOWN|wx.CB_READONLY)
-        self.label_recherche_nom = wx.StaticText(self, -1, "Recherche sur le nom :")
-        self.text_recherche_nom = wx.TextCtrl(self, -1, "")
+        self.search_nom = wx.SearchCtrl(self, -1, "")
         self.label_commentaire = wx.StaticText(self, -1, "Commentaires :")
         self.text_commentaire = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
-        self.bouton_ajout_produit = GenBitmapTextButton(self, -1, wx.Bitmap("../icons/16x16/ajouter.ico"), u" Ajouter un produit non listé")
+        self.bouton_ajout_produit = buttons.GenBitmapTextButton(self, -1, wx.Bitmap("../icons/16x16/ajouter.ico"), u" Ajouter un produit non listé", style=wx.BORDER_NONE)
         self.liste_lignes_inventaire = ObjectListView(self, -1,
                                                       style=wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL)
 
@@ -95,7 +94,7 @@ class FicheInventaire(wx.Panel):
         self.__do_layout()
 
         self.combo_box_fournisseur.Bind(wx.EVT_COMBOBOX, self.OnFilter)
-        self.text_recherche_nom.Bind(wx.EVT_TEXT, self.OnFilter)
+        self.search_nom.Bind(wx.EVT_TEXT, self.OnFilter)
         self.bouton_ajout_produit.Bind(wx.EVT_BUTTON, self.OnAjoutProduit)
         self.liste_lignes_inventaire.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnModifStock)
         self.bouton_enregistrer.Bind(wx.EVT_BUTTON, self.OnEnregistrer)
@@ -106,10 +105,9 @@ class FicheInventaire(wx.Panel):
     def __set_properties(self):
         self.label_titre_inventaire.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
         self.text_commentaire.SetMinSize((-1, 200))
-        self.label_fournisseur.SetMinSize((200, -1))
         self.combo_box_fournisseur.SetMinSize((200, -1))
-        self.label_recherche_nom.SetMinSize((200, -1))
-        self.text_recherche_nom.SetMinSize((200, -1))
+        self.search_nom.SetMinSize((200, -1))
+        self.search_nom.SetDescriptiveText("Recherche sur le nom")
         self.sizer_inventaire_staticbox.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
 
     def __set_valeurs(self):
@@ -134,11 +132,10 @@ class FicheInventaire(wx.Panel):
             print ex
             
     def __do_layout(self):
-        sizer_recherche = wx.FlexGridSizer(2, 2, 5, 10)
-        sizer_recherche.Add(self.label_fournisseur, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        sizer_recherche.Add(self.combo_box_fournisseur, 0, 0, 0)
-        sizer_recherche.Add(self.label_recherche_nom, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        sizer_recherche.Add(self.text_recherche_nom, 0, 0, 0)
+        sizer_recherche = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_recherche.Add(self.search_nom, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_recherche.Add(self.label_fournisseur, 0, wx.LEFT|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
+        sizer_recherche.Add(self.combo_box_fournisseur, 0, wx.ALIGN_CENTER_VERTICAL, 0)
 
         sizer_inventaire = wx.StaticBoxSizer(self.sizer_inventaire_staticbox, wx.VERTICAL)
         sizer_inventaire.Add(self.liste_lignes_inventaire, 1, wx.ALL|wx.EXPAND, 0)
@@ -222,7 +219,7 @@ class FicheInventaire(wx.Panel):
         event.Skip()
         
     def OnFilter(self, event):
-        filtre_texte = Filter.TextSearch(self.liste_lignes_inventaire, text=self.text_recherche_nom.GetValue())
+        filtre_texte = Filter.TextSearch(self.liste_lignes_inventaire, text=self.search_nom.GetValue())
 
         pk_fournisseur = self.combo_box_fournisseur.GetClientData(self.combo_box_fournisseur.GetSelection())
 
@@ -287,8 +284,7 @@ class DialogAjoutProduit(wx.Dialog):
 
         self.inventaire = inventaire
 
-        self.label_recherche_nom = wx.StaticText(self, -1, "Recherche sur le nom : ")
-        self.text_recherche_nom = wx.TextCtrl(self, -1, "")
+        self.search_nom = wx.SearchCtrl(self, -1, "")
         self.liste_produits = ObjectListView(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
 
         self.liste_produits.SetColumns([
@@ -297,7 +293,7 @@ class DialogAjoutProduit(wx.Dialog):
             ColumnDefn("Fournisseur", "left", -1, "fournisseur.nom", minimumWidth=100)
         ])
 
-        self.text_recherche_nom.Bind(wx.EVT_TEXT, self.OnFilter)
+        self.search_nom.Bind(wx.EVT_TEXT, self.OnFilter)
         self.liste_produits.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClickProduit)
 
         self.__set_properties()
@@ -307,6 +303,7 @@ class DialogAjoutProduit(wx.Dialog):
 
     def __set_properties(self):
         self.SetMinSize((400,300))
+        self.search_nom.SetDescriptiveText("Recherche sur le nom")
     
     def __remplissage_liste(self):
         try:
@@ -324,12 +321,8 @@ class DialogAjoutProduit(wx.Dialog):
             print ex
 
     def __do_layout(self):
-        sizer_entete = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_entete.Add(self.label_recherche_nom, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        sizer_entete.Add(self.text_recherche_nom, 1, 0, 0)
-    
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(sizer_entete, 0, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
+        sizer.Add(self.search_nom, 0, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
         sizer.Add(self.liste_produits, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -342,7 +335,7 @@ class DialogAjoutProduit(wx.Dialog):
         self.EndModal(wx.ID_OK)
         
     def OnFilter(self, event):
-        filtre_texte = Filter.TextSearch(self.liste_produits, text=self.text_recherche_nom.GetValue())
+        filtre_texte = Filter.TextSearch(self.liste_produits, text=self.search_nom.GetValue())
         self.liste_produits.SetFilter(filtre_texte)
         self.liste_produits.RepopulateList()
         event.Skip()
