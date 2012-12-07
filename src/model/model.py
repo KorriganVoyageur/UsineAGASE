@@ -450,13 +450,14 @@ class Achat(BaseModel):
     Classe Achat
     """
 
-    date = DateField()
+    date = DateTimeField()
+    cout_supplementaire = FloatField()
 
     adherent = ForeignKeyField(Adherent, related_name='achats')
 
     def __repr__(self):
-        _repr = "<Achat fait par %s le %s>" % (self.adherent,
-                                               self.date.strftime("%d/%m/%Y, %H:%M:%S"))
+        _repr = "<Achat fait par %s le %s>" % (self.adherent.prenom_nom,
+                                               self.date.strftime(u"%d/%m/%Y à %H:%M:%S"))
         return _repr.encode("utf-8")
 
     class Meta:
