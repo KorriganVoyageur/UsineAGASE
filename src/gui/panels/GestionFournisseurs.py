@@ -40,7 +40,8 @@ class GestionFournisseurs(wx.Panel):
             ColumnDefn("Code postal", "center", -1, "code_postal", fixedWidth=90),
             ColumnDefn("Ville", "left", -1, "ville"),
             ColumnDefn(u"Tel fixe", "left", -1, "telephone_fixe", minimumWidth=100),
-            ColumnDefn(u"Tel portable", "left", 100, "telephone_portable",
+            ColumnDefn(u"Tel portable", "left", -1, "telephone_portable", minimumWidth=100),
+            ColumnDefn(u"Nb référents", "right", 100, "referents.count",
                        isSpaceFilling=True, minimumWidth=100)
         ])
 

@@ -2,15 +2,112 @@
 # -*- coding: iso-8859-15 -*-
 
 import wx
-from model.model import Fournisseur, DATABASE
+from model.model import Fournisseur, Referent, Adherent, DATABASE
 from classes.Validators import GenericTextValidator, EmailValidator, VALIDATE_INT
+from lib.objectlistview import ObjectListView, ColumnDefn
+
 
 ###########################################################################
 ## Class FicheFournisseur
 ###########################################################################
 
-
 class FicheFournisseur(wx.Panel):
+    def __init__(self, parent, fournisseur):
+        wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, style=wx.TAB_TRAVERSAL)
+
+        #permet de faire un validate sur tout les panels
+        self.SetExtraStyle(wx.WS_EX_VALIDATE_RECURSIVELY)
+
+        if fournisseur:
+            self.fournisseur = fournisseur
+        else:
+            self.fournisseur = Fournisseur()
+
+        self.notebook = wx.Notebook(self, -1, style=0)
+        self.notebook_p1 = wx.Panel(self.notebook, -1)
+        self.notebook_p2 = wx.Panel(self.notebook, -1)
+
+        #self.sizer_adhesions_staticbox = wx.StaticBox(self.notebook_p4, -1, u"Types d'adhésion")
+        #self.label_description_adhesions = wx.StaticText(self.notebook_p4, -1, u"Ce sont les différentes formules disponibles pour adhérer à l'association.")
+
+        self.panel_fournisseur = FicheFournisseurBase(self.notebook_p1, self.fournisseur)
+        self.panel_gestion_referents = GestionReferents(self.notebook_p2, self.fournisseur)
+        
+        self.bouton_ok = wx.Button(self, wx.ID_OK, "")
+        self.bouton_annuler = wx.Button(self, wx.ID_CANCEL, "Annuler")
+        
+        self.bouton_ok.Bind(wx.EVT_BUTTON, self.OnEnregistre)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnClose)
+
+        self.__set_properties()
+        self.__do_layout()
+        # end wxGlade
+
+    def __set_properties(self):
+        #On affiche pas les panneaux secondaires pour un nouveau fournisseur
+        if not self.fournisseur.get_id():
+            self.notebook_p2.Hide()
+
+    def __do_layout(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_p1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_p2 = wx.BoxSizer(wx.VERTICAL)
+
+        sizer_p1.Add(self.panel_fournisseur, 1, wx.ALL|wx.EXPAND, 5)
+        self.notebook_p1.SetSizer(sizer_p1)
+
+        sizer_p2.Add(self.panel_gestion_referents, 1, wx.ALL|wx.EXPAND, 5)
+        self.notebook_p2.SetSizer(sizer_p2)
+
+        self.notebook.AddPage(self.notebook_p1, u"Fournisseur")
+        self.notebook.AddPage(self.notebook_p2, u"Référents")
+
+        sizer_boutons = wx.BoxSizer(wx.HORIZONTAL)
+
+        sizer_boutons.Add((20, 20), 1, 0, 0)
+        sizer_boutons.Add(self.bouton_ok, 0, 0, 0)
+        sizer_boutons.Add((20, 20), 1, 0, 0)
+        sizer_boutons.Add(self.bouton_annuler, 0, 0, 0)
+        sizer_boutons.Add((20, 20), 1, 0, 0)
+
+        sizer.Add(self.notebook, 1, wx.ALL|wx.EXPAND, 5)
+        sizer.Add(sizer_boutons, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        
+    def GetFournisseur(self):
+        return self.fournisseur
+
+    def OnEnregistre(self, event):
+        if self.Validate():
+            DATABASE.commit()
+        else:
+            control = wx.Window.FindFocus()
+            self.notebook.ChangeSelection(0)
+            control.SetFocus()
+            DATABASE.rollback()
+            
+        event.Skip()
+
+    def OnClose(self, event):
+        DATABASE.rollback()
+        event.Skip()
+
+
+
+
+
+
+
+
+
+
+###########################################################################
+## Class FicheFournisseurBase
+###########################################################################
+
+
+class FicheFournisseurBase(wx.Panel):
     def __init__(self, parent, fournisseur=None):
         wx.Panel.__init__(self, parent, style=wx.TAB_TRAVERSAL)
 
@@ -156,3 +253,155 @@ class FicheFournisseur(wx.Panel):
     def OnClose(self, event):
         #session.rollback()
         event.Skip()
+        
+        
+###########################################################################
+## Class GestionReferents
+###########################################################################
+
+
+class GestionReferents(wx.Panel):
+    def __init__(self, parent, fournisseur):
+        wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, style=wx.TAB_TRAVERSAL)
+        
+        self.fournisseur = fournisseur
+        
+        """ Attention, ici le référent est un objet Adherent"""
+        
+        self.label_description = wx.StaticText(self, -1, u"Liste des référents du fournisseur.")
+        self.staticline = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL)
+        self.bouton_ajout_referent = wx.BitmapButton(self, -1, wx.Bitmap("../icons/16x16/ajouter.ico"))
+        self.bouton_supprime_referent = wx.BitmapButton(self, -1, wx.Bitmap("../icons/16x16/enlever.ico"))
+        self.liste_referents = ObjectListView(self, -1, style=wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL)
+
+        self.liste_referents.SetColumns([
+            ColumnDefn("Nom", "left", -1, "nom", minimumWidth=100),
+            ColumnDefn(u"Prénom", "left", -1, "prenom", minimumWidth=100,isSpaceFilling=True)
+        ])
+
+        self.__set_properties()
+        self.__do_layout()
+        self.__remplissage_liste()
+
+        self.Bind(wx.EVT_BUTTON, self.OnAjoutReferent, self.bouton_ajout_referent)
+        self.Bind(wx.EVT_BUTTON, self.OnSupprimeReferent, self.bouton_supprime_referent)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnSelectionReferent, self.liste_referents)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnSelectionReferent, self.liste_referents)
+        # end wxGlade
+
+    def __set_properties(self):
+        self.bouton_ajout_referent.SetToolTip(wx.ToolTip(u"Ajouter un nouveau référent"))
+        self.bouton_supprime_referent.SetToolTip(wx.ToolTip(u"Supprimer le référent sélectionné"))
+        self.bouton_supprime_referent.Disable()
+        
+        self.liste_referents.SetEmptyListMsg(u"Aucun référent")
+        self.liste_referents.SortBy(0)
+
+    def __do_layout(self):
+        sizer_boutons = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_boutons.Add(self.bouton_ajout_referent, 0, wx.BOTTOM | wx.TOP | wx.ALIGN_RIGHT, 5)
+        sizer_boutons.Add((10, 10))
+        sizer_boutons.Add(self.bouton_supprime_referent, 0, wx.BOTTOM | wx.TOP | wx.ALIGN_RIGHT, 5)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.label_description, 0, wx.TOP|wx.EXPAND, 10)
+        sizer.Add(self.staticline, 0, wx.BOTTOM|wx.TOP|wx.EXPAND, 10)
+        sizer.Add(sizer_boutons, 0, wx.BOTTOM | wx.ALIGN_RIGHT | wx.EXPAND, 5)
+        sizer.Add(self.liste_referents, 1, wx.EXPAND)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+
+    def __remplissage_liste(self):
+        try:
+            self.liste_referents.SetObjects([a for a in self.fournisseur.referents])
+        except BaseException as ex:
+            print ex
+
+    def OnSelectionReferent(self, event):
+        if self.liste_referents.GetSelectedObject():
+            self.bouton_supprime_referent.Enable()
+        else:
+            self.bouton_supprime_referent.Disable()
+
+    def OnAjoutReferent(self, event):
+        if self.fournisseur:
+            dlg = DialogAjoutReferent(self.fournisseur)
+                
+            dlg.ShowModal()
+    
+            if dlg.GetReturnCode() == wx.ID_OK:
+                Referent.create(fournisseur=self.fournisseur, adherent=dlg.GetReferent())
+                self.liste_referents.AddObject(dlg.GetReferent())
+                self.liste_referents.AutoSizeColumns()
+
+            dlg.Destroy()
+                
+    def OnSupprimeReferent(self, event):
+        adherent = self.liste_referents.GetSelectedObject()
+
+        msgbox = wx.MessageBox(u"Enlever %s de la liste des référent pour %s ?" % (adherent.prenom_nom, self.fournisseur.nom), "Suppression", wx.YES_NO | wx.ICON_QUESTION)
+
+        if msgbox == wx.YES:
+            referent = Referent.select().where((Referent.fournisseur == self.fournisseur) and (Referent.adherent == adherent)).get()
+            referent.delete_instance()
+
+            self.liste_referents.RemoveObject(adherent)
+
+            
+###########################################################################
+## Class DialogAjoutReferent
+###########################################################################
+
+class DialogAjoutReferent(wx.Dialog):
+    def __init__(self, fournisseur):
+        wx.Dialog.__init__(self, None, -1, title=u"Ajouter un référent", pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE)
+
+        self.fournisseur = fournisseur
+        
+        """ Attention, ici le référent est un objet Adherent"""
+
+        self.liste_referents = ObjectListView(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+
+        self.liste_referents.SetColumns([
+            ColumnDefn("Nom", "left", -1, "nom", minimumWidth=100),
+            ColumnDefn(u"Prénom", "left", -1, "prenom", minimumWidth=100, isSpaceFilling=True)
+        ])
+
+        self.liste_referents.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClickReferent)
+
+        self.__set_properties()
+        self.__remplissage_liste()
+        self.__do_layout()
+
+    def __set_properties(self):
+        self.SetMinSize((200,300))
+        self.liste_referents.SortBy(0)
+    
+    def __remplissage_liste(self):
+        try:
+            requete = Adherent.select().where(~(Adherent.id << self.fournisseur.referents))
+            self.liste_referents.SetObjects([a for a in requete])
+            
+            #On dimentionne le dialog selon la largeur des colonnes
+            largeur = 0
+            for num_colonne in range(2) :
+                largeur += self.liste_referents.GetColumnWidth(num_colonne)
+             
+            self.liste_referents.SetMinSize((largeur+20,300))
+            
+        except BaseException as ex:
+            print ex
+
+    def __do_layout(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.liste_referents, 1, wx.ALL|wx.EXPAND, 10)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def GetReferent(self):
+        return self.liste_referents.GetSelectedObject()
+
+    def OnClickReferent(self, event):
+        self.EndModal(wx.ID_OK)
+

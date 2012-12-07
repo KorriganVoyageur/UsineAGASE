@@ -93,6 +93,11 @@ class Fournisseur(BaseModel):
             telephone += self.telephone_portable
 
         return telephone
+    
+    @property
+    def referents(self):
+        """Renvoie tous les adhérents qui sont référents au fournisseur"""
+        return Adherent.select().join(Referent).join(Fournisseur).where(Fournisseur.id == self)
 
     class Meta:
         db_table = 'fournisseurs'

@@ -284,6 +284,9 @@ class GestionAdhesions(wx.Panel):
         self.bouton_ajout_adhesion.SetToolTip(wx.ToolTip(u"Ajouter une nouvelle adhésion"))
         self.bouton_supprime_adhesion.SetToolTip(wx.ToolTip(u"Supprimer l'adhésion sélectionnée"))
         self.bouton_supprime_adhesion.Disable()
+        
+        self.liste_adhesions.SetEmptyListMsg(u"Aucune adhésion")
+        self.liste_adhesions.sort(1, False)
 
     def __do_layout(self):
         sizer_boutons = wx.BoxSizer(wx.HORIZONTAL)
@@ -384,6 +387,9 @@ class GestionFournisseurs(wx.Panel):
         self.bouton_ajout_fournisseur.SetToolTip(wx.ToolTip(u"Ajouter un nouveau fournisseur"))
         self.bouton_supprime_fournisseur.SetToolTip(wx.ToolTip(u"Supprimer le fournisseur sélectionné"))
         self.bouton_supprime_fournisseur.Disable()
+        
+        self.liste_fournisseurs.SetEmptyListMsg("Aucun fournisseur")
+        self.liste_fournisseurs.SortBy(0)
 
     def __do_layout(self):
         sizer_boutons = wx.BoxSizer(wx.HORIZONTAL)
@@ -430,9 +436,8 @@ class GestionFournisseurs(wx.Panel):
         msgbox = wx.MessageBox(u"Supprimer le fournisseur \"%s\" ?" % fournisseur.nom, "Suppression", wx.YES_NO | wx.ICON_QUESTION)
 
         if msgbox == wx.YES:
-            with DATABASE.transaction():
-                referent = Referent.select().where((Referent.adherent == self.adherent) and (Referent.fournisseur == fournisseur)).get()
-                referent.delete_instance()
+            referent = Referent.select().where((Referent.adherent == self.adherent) and (Referent.fournisseur == fournisseur)).get()
+            referent.delete_instance()
 
             self.liste_fournisseurs.RemoveObject(fournisseur)
 
@@ -461,6 +466,7 @@ class DialogAjoutFournisseur(wx.Dialog):
 
     def __set_properties(self):
         self.SetMinSize((200,300))
+        self.liste_fournisseurs.SortBy(0)
     
     def __remplissage_liste(self):
         try:
