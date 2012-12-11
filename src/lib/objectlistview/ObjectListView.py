@@ -878,7 +878,12 @@ class ObjectListView(wx.ListCtrl):
         #else:
         #    clientSize = self.GetClientSizeTuple()[0]
         #freeSpace = max(0, clientSize - totalFixedWidth)
-        freeSpace = max(0, self.GetClientSizeTuple()[0] - totalFixedWidth)
+        #Ajout éviter le bug des scrollbars
+        
+        if (self.GetViewRect()[3] + self.GetWindowBorderSize()[0]) >= self.GetVirtualSizeTuple()[1]:
+            freeSpace = max(0, self.GetClientSizeTuple()[0] - totalFixedWidth - wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X))
+        else:
+            freeSpace = max(0, self.GetClientSizeTuple()[0] - totalFixedWidth)
 
         # Calculate the total number of slices the free space will be divided into
         totalProportion = sum(x.freeSpaceProportion for x in self.columns if x.isSpaceFilling)
