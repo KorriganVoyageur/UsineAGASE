@@ -120,12 +120,7 @@ class FicheCommande(wx.Panel):
         # end wxGlade
 
     def __update_total(self):
-        total = 0
-
-        for ligne in self.liste_lignes_commande.GetObjects():
-            total += ligne.prix_total_commande_ttc
-
-        self.label_total_valeur.SetLabel(u"%.2f ¤" % total)
+        self.label_total_valeur.SetLabel(u"%.2f ¤" % self.commande.total_commande_TTC())
         self.Layout()
 
     def SetFournisseur(self, fournisseur):
