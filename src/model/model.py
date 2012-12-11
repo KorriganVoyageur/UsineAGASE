@@ -181,6 +181,18 @@ class Produit(BaseModel):
         else:
             return  u"unité"
 
+    @property
+    def unite_vente(self):
+        """ Retourne l'unité de vente du produit """
+
+        if self.vrac:
+            if self.liquide:
+                return "ml"
+            else:
+                return "g"
+        else:
+            return  u"unité"
+
     def conditionnement_format(self, majuscule=True, pluriel=False):
         """
         Retourne le type de conditionnement
@@ -214,10 +226,12 @@ class Produit(BaseModel):
         else:
             return conditionnement
 
+    @property
     def prix_achat_TTC(self):
         """ Retourne le prix d'achat TTC """
         return round(float(self.prix_achat_HT) * (1 + self.tva.taux / 100), 2)
 
+    @property
     def prix_vente(self):
         """
         Retourne le prix de vente
@@ -225,17 +239,17 @@ class Produit(BaseModel):
         """
 
         if self.vrac:
-            return round05((self.prix_achat_TTC() * MARGE_VENTE) / \
+            return round05((self.prix_achat_TTC * MARGE_VENTE) / \
                            (float(self.poids_volume) / 1000))
         else:
-            return round05(self.prix_achat_TTC() * MARGE_VENTE)
+            return round05(self.prix_achat_TTC * MARGE_VENTE)
 
     def prix_vente_format(self):
         """
         Retourne le prix de vente formatté
         en fonction du type de vente (vrac ou à l'unité)
         """
-        return u"%.2f ¤" % self.prix_vente() + (self.vrac and " / " + self.unite or "")
+        return u"%.2f ¤" % self.prix_vente + (self.vrac and " / " + self.unite or "")
 
     def ref_GASE(self):
         """
@@ -369,6 +383,25 @@ class Referent(BaseModel):
         db_table = 'referents'
 
 
+class Cotisation(BaseModel):
+    """
+    Classe Cotisation
+    """
+
+    date = DateField()
+    montant = FloatField()
+
+    adherent = ForeignKeyField(Adherent, related_name='adhesions')
+
+    def __repr__(self):
+        _repr = u"<Cotisation de %.2f ¤ le %s>" % (self.montant, self.date.strftime("%d-%m-%y"))
+        return _repr.encode("utf-8")
+
+
+    class Meta:
+        db_table = 'cotisations'
+
+
 class AdhesionType(BaseModel):
     """
     Classe AdhesionType
@@ -455,8 +488,8 @@ class Achat(BaseModel):
     Classe Achat
     """
 
-    date = DateTimeField()
-    cout_supplementaire = FloatField()
+    date = DateTimeField(default=datetime.today())
+    cout_supplementaire = FloatField(default=0)
 
     adherent = ForeignKeyField(Adherent, related_name='achats')
 
@@ -464,6 +497,14 @@ class Achat(BaseModel):
         _repr = "<Achat fait par %s le %s>" % (self.adherent.prenom_nom,
                                                self.date.strftime(u"%d/%m/%Y à %H:%M:%S"))
         return _repr.encode("utf-8")
+
+    @property
+    def total(self):
+        total = self.cout_supplementaire
+        for la in self.lignes_achat:
+            total += la.prix_total
+
+        return total
 
     class Meta:
         db_table = 'achats'
@@ -474,8 +515,8 @@ class LigneAchat(BaseModel):
     Classe LigneAchat
     """
 
-    quantite = IntegerField()
-    prix_total = FloatField()
+    _quantite = IntegerField(db_column='quantite', default=0)
+    prix_total = FloatField(default=0)
 
     achat = ForeignKeyField(Achat, related_name='lignes_achat')
     produit = ForeignKeyField(Produit)
@@ -483,6 +524,22 @@ class LigneAchat(BaseModel):
     def __repr__(self):
         _repr = "<LigneAchat : id_achat %i - produit %s>" % (self.achat.get_id(), self.produit.nom)
         return _repr.encode("utf-8")
+    
+    @property
+    def quantite(self):
+        return self._quantite
+    
+    @quantite.setter
+    def quantite(self, valeur):
+        self._quantite = valeur
+        if self.produit.vrac:
+            self.prix_total = float("%.2f" % ((valeur * self.produit.prix_vente)/1000))
+        else:
+            self.prix_total = valeur * self.produit.prix_vente
+
+    @property
+    def quantite_format(self):
+        return "%i %s" % (self.quantite, self.produit.unite_vente)
 
     class Meta:
         db_table = 'lignes_achat'
@@ -1002,6 +1059,8 @@ if creation_tables == 1:
         Adherent.create_table()
     if not Referent.table_exists():
         Referent.create_table()
+    if not Cotisation.table_exists():
+        Cotisation.create_table()
     if not AdhesionType.table_exists():
         AdhesionType.create_table()
     if not Adhesion.table_exists():

@@ -4,6 +4,7 @@
 import wx
 
 from panels.GestionAsso import GestionAsso
+from panels.GestionAchats import GestionAchats
 from panels.ParametresLogiciel import ParametresLogiciel
 from panels.GestionCategories import GestionCategories
 from panels.GestionCommandes import GestionCommandes
@@ -173,7 +174,7 @@ class MainFrame(wx.Frame):
             #self.SetPanelPrincipal(GestionCategories(self))
         elif event_id == 1001:
             pass
-            #self.SetPanelPrincipal(GestionCategories(self))
+            self.SetPanelPrincipal(GestionAchats)
         elif event_id == 1003:
             self.SetPanelPrincipal(GestionAsso)
         elif event_id == 1004:

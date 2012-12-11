@@ -22,7 +22,7 @@ class UsineAGASE(wx.App):
         
         F = wx.SplashScreen(wx.Bitmap("../icons/splash.bmp"), wx.SPLASH_TIMEOUT|wx.SPLASH_CENTER_ON_SCREEN, 2000, None, -1)
                 
-        frame_EcranPrincipal = MainFrame(None, title=u"Usine à GASE", droits=0)
+        frame_EcranPrincipal = MainFrame(None, title=u"Usine à GASE", droits=1)
         self.SetTopWindow(frame_EcranPrincipal)
         frame_EcranPrincipal.Show()
 
