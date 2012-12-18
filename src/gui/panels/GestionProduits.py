@@ -182,10 +182,10 @@ class GestionProduits(wx.Panel):
 
                 y = (n_produit-1)/2
 
-                ligne_etiquettes.append(Paragraph(produit.ref_GASE(), ref_style))
+                ligne_etiquettes.append(Paragraph(produit.ref_GASE, ref_style))
                 ligne_etiquettes.append(Paragraph(produit.nom, nom_style))
 
-                ligne_etiquettes.append(Paragraph(produit.prix_vente_format(), prix_style))
+                ligne_etiquettes.append(Paragraph(produit.prix_vente_format, prix_style))
 
                 tableau_style.append(('BACKGROUND',
                                       (x, y), (x+2, y),

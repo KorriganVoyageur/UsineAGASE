@@ -120,7 +120,7 @@ class FicheProduit(wx.Panel):
     def __set_valeurs(self):
         if self.produit.get_id() != None:
             self.text_Nom.SetValue(self.produit.nom)
-            self.label_RefGASEV.SetLabel(self.produit.ref_GASE())
+            self.label_RefGASEV.SetLabel(self.produit.ref_GASE)
             
             for i in range(len(self.combo_box_Categorie.GetItems())):
                 if self.produit.categorie == self.combo_box_Categorie.GetClientData(i):
@@ -261,7 +261,7 @@ class FicheProduit(wx.Panel):
         else:
             self.produit.id = id_max + 1
 
-        self.label_RefGASEV.SetLabel(self.produit.ref_GASE())
+        self.label_RefGASEV.SetLabel(self.produit.ref_GASE)
 
     def OnClickRetrait(self, event):  # wxGlade: FicheProduit.<event_handler>
         self.text_MotifRetrait.Enable(self.checkbox_RetraitProduit.IsChecked())

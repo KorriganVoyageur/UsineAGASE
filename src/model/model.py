@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: iso-8859-15 -*-
+# -*- coding: utf-8 -*-
+
+""" # -*- coding: iso-8859-15 -*-"""
 
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
@@ -21,14 +23,14 @@ MARGE_VENTE = 1.05
 
 
 def round05(number):
-    """ Fonction pour l'arrondissement au 0.5 près"""
+    """ Fonction pour l'arrondissement au 0.5 prÃ¨s"""
     return (round(number * 20) / 20)
 
 
 class BaseModel(Model):
     """
-    Classe à hériter pour définir directement la base
-    de donnée pour chaque model
+    Classe Ã  hÃ©riter pour dÃ©finir directement la base
+    de donnÃ©e pour chaque model
     """
 
     class Meta:
@@ -96,7 +98,7 @@ class Fournisseur(BaseModel):
     
     @property
     def referents(self):
-        """Renvoie tous les adhérents qui sont référents au fournisseur"""
+        """Renvoie tous les adhÃ©rents qui sont rÃ©fÃ©rents au fournisseur"""
         return Adherent.select().join(Referent).join(Fournisseur).where(Fournisseur.id == self)
 
     class Meta:
@@ -111,11 +113,11 @@ class Categorie(BaseModel):
     nom = CharField()
 
     def __repr__(self):
-        _repr = u"<Catégorie : %s>" % self.nom
+        _repr = u"<CatÃ©gorie : %s>" % self.nom
         return _repr.encode("utf-8")
 
     def nombre_produits(self):
-        """ Retourne le nombre de produits affectés à la catégorie """
+        """ Retourne le nombre de produits affectÃ©s Ã  la catÃ©gorie """
         return self.produits.count()
 
     class Meta:
@@ -134,7 +136,7 @@ class Tva(BaseModel):
         return _repr.encode("utf-8")
 
     def nombre_produits(self):
-        """ Retourne le nombre de produits affectés à la catégorie """
+        """ Retourne le nombre de produits affectÃ©s Ã  la catÃ©gorie """
         return self.produits.count()
 
     class Meta:
@@ -171,7 +173,7 @@ class Produit(BaseModel):
 
     @property
     def unite(self):
-        """ Retourne l'unité du produit """
+        """ Retourne l'unitÃ© du produit """
 
         if self.vrac:
             if self.liquide:
@@ -179,11 +181,11 @@ class Produit(BaseModel):
             else:
                 return "kg"
         else:
-            return  u"unité"
+            return  u"unitÃ©"
 
     @property
     def unite_vente(self):
-        """ Retourne l'unité de vente du produit """
+        """ Retourne l'unitÃ© de vente du produit """
 
         if self.vrac:
             if self.liquide:
@@ -191,7 +193,7 @@ class Produit(BaseModel):
             else:
                 return "g"
         else:
-            return  u"unité"
+            return  u"unitÃ©"
 
     def conditionnement_format(self, majuscule=True, pluriel=False):
         """
@@ -205,7 +207,7 @@ class Produit(BaseModel):
         s = pluriel and "s" or ""
 
         if self.vrac:
-            #Permet d'enlever la virgule si le résultat est un entier
+            #Permet d'enlever la virgule si le rÃ©sultat est un entier
             if self.poids_volume % 1000 != 0:
                 poids_volume = float(self.poids_volume)/1000
             else:
@@ -217,9 +219,9 @@ class Produit(BaseModel):
                 conditionnement = "sac%s de %s kg" % (s, str(poids_volume))
         else:
             if self.conditionnement > 1:
-                conditionnement = u"carton%s de %s unités" % (s, str(self.conditionnement))
+                conditionnement = u"carton%s de %s unitÃ©s" % (s, str(self.conditionnement))
             else:
-                conditionnement = u"unité%s" % s
+                conditionnement = u"unitÃ©%s" % s
 
         if majuscule:
             return conditionnement.capitalize()
@@ -235,7 +237,7 @@ class Produit(BaseModel):
     def prix_vente(self):
         """
         Retourne le prix de vente
-        en fonction du type de vente (vrac ou à l'unité)
+        en fonction du type de vente (vrac ou Ã  l'unitÃ©)
         """
 
         if self.vrac:
@@ -244,26 +246,29 @@ class Produit(BaseModel):
         else:
             return round05(self.prix_achat_TTC * MARGE_VENTE)
 
+    @property
     def prix_vente_format(self):
         """
-        Retourne le prix de vente formatté
-        en fonction du type de vente (vrac ou à l'unité)
+        Retourne le prix de vente formattÃ©
+        en fonction du type de vente (vrac ou Ã  l'unitÃ©)
         """
-        return u"%.2f ¤" % self.prix_vente + (self.vrac and " / " + self.unite or "")
+        return u"%.2f â‚¬" % self.prix_vente + (self.vrac and " / " + self.unite or "")
 
+    @property
     def ref_GASE(self):
         """
-        Retourne la référence GASE de type 00-111
+        Retourne la rÃ©fÃ©rence GASE de type 00-111
 
-        00 -- numéro de la catégorie
-        111 --- numéro du produit
+        00 -- numÃ©ro de la catÃ©gorie
+        111 --- numÃ©ro du produit
         """
 
         return str(self.categorie.get_id()).zfill(2) + "-" + \
                str(self.id).zfill(3)
 
+    @property
     def stock_format(self):
-        """ Retourne, formatté, le stock """
+        """ Retourne, formattÃ©, le stock """
         if self.vrac:
             return "%.2f %s" % (float(self.stock)/1000, self.unite)
         else:
@@ -312,7 +317,7 @@ class Adherent(BaseModel):
     cotisation_type = ForeignKeyField(CotisationType, related_name='adherents')
 
     def __repr__(self):
-        _repr = u"<Adhérant : %s>" % self.nom_prenom
+        _repr = u"<AdhÃ©rant : %s>" % self.nom_prenom
         return _repr.encode("utf-8")
 
     @property
@@ -323,7 +328,7 @@ class Adherent(BaseModel):
     def nom_prenom(self):
         return self.nom + " " + self.prenom
 
-    #TODO : voir si cette méthode est vraiment nécessaire
+    #TODO : voir si cette mÃ©thode est vraiment nÃ©cessaire
     """def logins(self):
         try:
             logins = session.query(Adherant.Login).filter(Adherant.Login != \
@@ -337,7 +342,7 @@ class Adherent(BaseModel):
 
     @property
     def telephone(self):
-        """ Retourne le ou les numéros de téléphone"""
+        """ Retourne le ou les numÃ©ros de tÃ©lÃ©phone"""
         telephone = ""
         if len(self.telephone_fixe) > 0:
             telephone += self.telephone_fixe
@@ -360,7 +365,7 @@ class Adherent(BaseModel):
     
     @property
     def fournisseurs(self):
-        """Renvoie tous les fournisseurs pour lesquels l'adhérent est référent"""
+        """Renvoie tous les fournisseurs pour lesquels l'adhÃ©rent est rÃ©fÃ©rent"""
         return Fournisseur.select().join(Referent).join(Adherent).where(Adherent.id == self)
 
     class Meta:
@@ -376,7 +381,7 @@ class Referent(BaseModel):
     fournisseur = ForeignKeyField(Fournisseur)
 
     def __repr__(self):
-        _repr = "<%s réferent de %s>" % (self.adherent, self.fournisseur)
+        _repr = "<%s rÃ©ferent de %s>" % (self.adherent, self.fournisseur)
         return _repr.encode("utf-8")
 
     class Meta:
@@ -394,7 +399,7 @@ class Cotisation(BaseModel):
     adherent = ForeignKeyField(Adherent, related_name='adhesions')
 
     def __repr__(self):
-        _repr = u"<Cotisation de %.2f ¤ le %s>" % (self.montant, self.date.strftime("%d-%m-%y"))
+        _repr = u"<Cotisation de %.2f â‚¬ le %s>" % (self.montant, self.date.strftime("%d-%m-%y"))
         return _repr.encode("utf-8")
 
 
@@ -411,7 +416,7 @@ class AdhesionType(BaseModel):
     prix = FloatField()
 
     def __repr__(self):
-        _repr = u"<Type d'adhésion : %s>" % self.nom
+        _repr = u"<Type d'adhÃ©sion : %s>" % self.nom
         return _repr.encode("utf-8")
 
     class Meta:
@@ -432,14 +437,14 @@ class Adhesion(BaseModel):
 
     def __repr__(self):
         print self.is_valide()
-        _repr = u"<Adhésion de %.2f ¤ pour %s le %s>" % (self.montant,
+        _repr = u"<AdhÃ©sion de %.2f â‚¬ pour %s le %s>" % (self.montant,
                                                        self.adherent,
                                                        self.date.strftime("%d/%m/%Y"))
 
         return _repr.encode("utf-8")
 
     def is_valide(self):
-        """ Permet de vérifier si l'adhésion
+        """ Permet de vÃ©rifier si l'adhÃ©sion
         est valide pour l'exercice en cours """
 
         if Parametre.get(nom="ASSO_typeadhesion").valeur == "1":
@@ -474,7 +479,7 @@ class Credit(BaseModel):
     adherent = ForeignKeyField(Adherent, related_name='Credits')
 
     def __repr__(self):
-        _repr = "<Credit de %f ¤ pour %s le %s>" % (self.montant,
+        _repr = "<Credit de %f â‚¬ pour %s le %s>" % (self.montant,
                                                     self.adherent,
                                                     self.date.strftime("%d/%m/%Y"))
         return _repr.encode("utf-8")
@@ -563,19 +568,19 @@ class Commande(BaseModel):
 
     def statut_nom(self):
         if self.statut == 0:
-            return u"Création"
+            return u"CrÃ©ation"
         elif self.statut == 1:
-            return u"Commandée"
+            return u"CommandÃ©e"
         elif self.statut == 2:
-            return u"Livrée"
+            return u"LivrÃ©e"
         elif self.statut == 3:
-            return u"Vérifiée"
+            return u"VÃ©rifiÃ©e"
         else:
             return "Statut inconnu"
 
     def date_commande_format(self):
         if self.statut == 0:
-            return u"Pas encore commandée"
+            return u"Pas encore commandÃ©e"
         else:
             return self.date_commande.strftime("%d-%m-%Y")
 
@@ -722,7 +727,7 @@ class Commande(BaseModel):
 
         lst.append(Spacer(1, 2 * cm))
 
-        entete = [u"Reférence", "Nom", u"Quantité", "Prix HT"]
+        entete = [u"RefÃ©rence", "Nom", u"QuantitÃ©", "Prix HT"]
 
         tableau = []
         tableau.append(entete)
@@ -732,14 +737,14 @@ class Commande(BaseModel):
             ligne_commande.append(lc.produit.ref_fournisseur)
             ligne_commande.append(lc.produit.nom)
             ligne_commande.append(lc.quantite_commandee_conditionnement())
-            ligne_commande.append(u"%.2f ¤" % lc.prix_total_commande_ht)
+            ligne_commande.append(u"%.2f â‚¬" % lc.prix_total_commande_ht)
             tableau.append(ligne_commande)
 
         tableau.append(["", "", "", ""])
         tableau.append(["", "", "Total HT",
-                        u"%.2f ¤" % self.total_commande_HT()])
+                        u"%.2f â‚¬" % self.total_commande_HT()])
         tableau.append(["", "", "Total TTC",
-                        u"%.2f ¤" % self.total_commande_TTC()])
+                        u"%.2f â‚¬" % self.total_commande_TTC()])
 
         tableau_commande = Table(tableau,
                                  ([3 * cm, 9 * cm, 4 * cm, 2 * cm]))
@@ -759,7 +764,7 @@ class Commande(BaseModel):
 
         lst.append(tableau_commande)
 
-        #Création des répertoires si ils n'xistent pas
+        #CrÃ©ation des rÃ©pertoires si ils n'xistent pas
         #dir = os.path.dirname("./Bons de commande/" + self.Fournisseur.Nom +
         # "/")
         #if not os.path.exists(dir):
@@ -771,7 +776,7 @@ class Commande(BaseModel):
             #canvas.line(66,72,66,PAGE_HEIGHT-72)
             canvas.setFont('Helvetica', 10)
             canvas.drawString(1.5 * cm, cm, self.fournisseur.nom +
-                              u" - Commande n°" +
+                              u" - Commande nÂ°" +
                               str(self.numero_commande()).zfill(3) +
                               " - " + date_commande.strftime("%d-%m-%Y"))
             canvas.drawRightString(A4[0] - (1.5 * cm), cm,
@@ -940,7 +945,7 @@ class Inventaire(BaseModel):
     """
 
     date = DateField(default=date.today())
-    commentaire = TextField(default=u"Ajouter ici toutes les choses à notre sur cet inventaire")
+    commentaire = TextField(default=u"Ajouter ici toutes les choses Ã  notre sur cet inventaire")
     is_valide = BooleanField(default=False)
 
     def initialisation(self):
@@ -985,7 +990,7 @@ class LigneInventaire(BaseModel):
         return _repr.encode("utf-8")
 
     def stock_theorique_format(self):
-        """ Retourne, formatté, le stock théorique """
+        """ Retourne, formattÃ©, le stock thÃ©orique """
         if self.produit.vrac:
             return "%.2f %s" % (float(self.stock_theorique)/1000, self.produit.unite)
         else:
@@ -994,7 +999,7 @@ class LigneInventaire(BaseModel):
                                 (lambda x: (x.stock_theorique > 1 and x.produit.vrac == False) and "s" or  "")(self))
             
     def stock_reel_format(self):
-        """ Retourne, formatté, le stock réel """
+        """ Retourne, formattÃ©, le stock rÃ©el """
         if self.stock_reel >= 0:        
             if self.produit.vrac:
                 return "%.2f %s" % (float(self.stock_reel)/1000, self.produit.unite)
@@ -1006,7 +1011,7 @@ class LigneInventaire(BaseModel):
             return ""
         
     def stock_difference(self):
-        """ Retourne, formatté, la différence enter stock réel et théorique """
+        """ Retourne, formattÃ©, la diffÃ©rence enter stock rÃ©el et thÃ©orique """
         if self.stock_reel >= 0:        
             if self.produit.vrac:
                 return "%.2f %s" % (float(self.stock_reel - self.stock_theorique)/1000, self.produit.unite)
@@ -1030,7 +1035,7 @@ class Parametre(BaseModel):
     valeur = TextField(default="")
 
     def __repr__(self):
-        _repr = u"<Paramètre : %s" % self.nom
+        _repr = u"<ParamÃ¨tre : %s" % self.nom
         return _repr.encode("utf-8")
 
     class Meta:
