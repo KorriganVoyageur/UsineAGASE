@@ -4,8 +4,9 @@
 import wx
 from model.model import Adherent, Achat, LigneAchat, Credit, Cotisation, DATABASE
 from gui.panels.FicheAchat import FicheAchat
-from lib.objectlistview import ObjectListView, ColumnDefn
+from lib.objectlistview import ObjectListView, ColumnDefn, Filter
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 
 class GestionAchats(wx.Panel):
@@ -30,11 +31,24 @@ class GestionAchats(wx.Panel):
 
         #Page "Dernieres produits achetés"
         self.panel_page_achat_mois = wx.Panel(self.notebook_achats, -1)
-        self.search_nom = wx.SearchCtrl(self.panel_page_achat_mois, -1, "")
-        self.label_date_recherche = wx.StaticText(self.panel_page_achat_mois, -1, u"Afficher les produits achetés depuis le :")
-        self.datepicker_date_max = wx.DatePickerCtrl(self.panel_page_achat_mois, -1)
+        self.label_mois_recherche = wx.StaticText(self.panel_page_achat_mois, -1, u"Achats du mois de ")
+        self.combobox_choix_mois = wx.ComboBox(self.panel_page_achat_mois, -1)
+        self.label_total_mois = wx.StaticText(self.panel_page_achat_mois, -1, u"Total des achats du mois : XX.XX €")
         self.liste_achats_mois = ObjectListView(self.panel_page_achat_mois, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
 
+        """def date_achat(ligne_achat):
+            return ligne_achat.achat.date.strftime("%d-%m-%y")
+
+        def ref_GASE_nom(ligne_achat):
+            return "%s - %s" % (ligne_achat.produit.ref_GASE, ligne_achat.produit.nom)
+        
+        self.liste_achats_mois.SetColumns([
+            ColumnDefn("Ref GASE - Nom", "left", -1, ref_GASE_nom, minimumWidth=250, groupKeyGetter=date_achat),
+            ColumnDefn("Prix", "left", -1, "produit.prix_vente_format", minimumWidth=100),
+            ColumnDefn(u"Quantité", "left", -1, "quantite_format", minimumWidth=70),
+            ColumnDefn(u"Total", "right", -1, "prix_total", stringConverter=u"%.2f €", minimumWidth=70, isSpaceFilling=True)
+        ])"""
+        
         self.liste_achats_mois.SetColumns([
             ColumnDefn("Date", "center", -1, "achat.date", stringConverter="%d-%m-%y", minimumWidth=70),
             ColumnDefn("Ref GASE", "center", -1, "produit.ref_GASE", minimumWidth=70),
@@ -44,6 +58,7 @@ class GestionAchats(wx.Panel):
             ColumnDefn(u"Total", "right", -1, "prix_total", stringConverter=u"%.2f €", minimumWidth=70, isSpaceFilling=True)
         ])
         
+        self.liste_achats_mois.SetEmptyListMsg("Aucuns achat pour ce mois")
         self.liste_achats_mois.AutoSizeColumns()
 
         self.notebook_achats.AddPage(self.panel_page_achat_mois, u"Achats du mois")
@@ -86,22 +101,40 @@ class GestionAchats(wx.Panel):
         self.__set_valeurs()
         self.__do_layout()
 
-        self.search_nom.Bind(wx.EVT_TEXT, self.OnRechercheNom)
-        self.datepicker_date_max.Bind(wx.EVT_DATE_CHANGED, self.OnRechercheDate)
+        self.combobox_choix_mois.Bind(wx.EVT_COMBOBOX, self.OnChoixMois)
         self.bouton_ajout_achat.Bind(wx.EVT_BUTTON, self.OnAjoutAchat)
         self.liste_achats.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnDetailsAchat)
+        #self.liste_achats_mois.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnDetailsAchat)
+        self.liste_achats_mois.Disable()
 
     def __set_properties(self):
-        self.search_nom.SetMinSize((200, -1))
-        self.search_nom.SetDescriptiveText("Recherche sur le nom")
+        pass
 
     def __set_valeurs(self):
         try:
-            date_mois = datetime(datetime.today().year, datetime.today().month, 1)
-            print date_mois
-            lignes_achat = LigneAchat.select().join(Achat).where((Achat.adherent == self.adherent) and
-                                                                 (Achat.date >= date_mois)).order_by(Achat.date.desc())            
-            self.liste_achats_mois.SetObjects([la for la in lignes_achat])
+            #requete en brut pour pouvoir séelctionner les mois et les années des achats
+            requete  = "SELECT strftime('%Y', date) as annee, "
+            requete += "strftime('%m', date) as mois "
+            requete += "FROM achats "
+            requete += "WHERE adherent_id = %i " % self.adherent.id
+            requete += "GROUP  BY annee, mois "
+            requete += "ORDER  BY annee, mois DESC"
+            
+            # Liste des mois en français
+            mois = ['Janvier',u'Février','Mars','Avril','Mai','Juin','Juillet',u'Août','Septembre','Octobre','Novembre',u'Décembre']
+            
+            mois_courant = (str(datetime.today().year), str(datetime.today().month))
+    
+            #on ajoute en premier le mois courant
+            self.combobox_choix_mois.Append("%s %s" % (mois[int(mois_courant[1])-1], mois_courant[0]), mois_courant)
+            self.combobox_choix_mois.SetSelection(0)
+            
+            #on ajoute tous les mois où il y a eu des achats
+            for date in DATABASE.execute_sql(requete):
+                if date != mois_courant:
+                    self.combobox_choix_mois.Append("%s %s" % (mois[int(date[1])-1], date[0]), date)
+            
+            self.OnChoixMois(None)
 
             achats = Achat.select().where(Achat.adherent == self.adherent).order_by(Achat.date.desc())            
             self.liste_achats.SetObjects([a for a in achats])
@@ -132,9 +165,10 @@ class GestionAchats(wx.Panel):
         sizer.Add(sizer_boutons, 0, wx.EXPAND, 0)
         sizer.Add(self.label_info, 0, wx.ALL, 5)
 
-        sizer_toolbar.Add(self.search_nom, 0, wx.RIGHT, 10)
-        sizer_toolbar.Add(self.label_date_recherche, 0, wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
-        sizer_toolbar.Add(self.datepicker_date_max, 0, 0, 0)
+        sizer_toolbar.Add(self.label_mois_recherche, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_toolbar.Add(self.combobox_choix_mois, 0, 0, 0)
+        sizer_toolbar.Add((1,1), 1, wx.EXPAND, 0)
+        sizer_toolbar.Add(self.label_total_mois, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 5)
 
         sizer_panel_page_achat_mois.Add(sizer_toolbar, 0, wx.ALL | wx.EXPAND, 5)
         sizer_panel_page_achat_mois.Add(self.liste_achats_mois, 1, wx.ALL | wx.EXPAND, 5)
@@ -163,16 +197,32 @@ class GestionAchats(wx.Panel):
         sizer.Add(fiche_achat, 1, wx.EXPAND)
         self.GetParent().SetSizer(sizer)
         self.GetParent().Layout()
+    
+    def OnChoixMois(self, event):
+        """Mets à jour la liste des achats du mois sélectionné """
+        date = self.combobox_choix_mois.GetClientData(self.combobox_choix_mois.GetSelection())
+
+        date_mois = datetime(int(date[0]), int(date[1]), 1)
+        date_mois_suivant = date_mois + relativedelta(months = +1)
         
+        lignes_achat = LigneAchat.select().join(Achat).where((Achat.adherent == self.adherent) &
+                                                             (Achat.date >= date_mois) &
+                                                             (Achat.date < date_mois_suivant)).order_by(Achat.date.asc())
+        
+        self.liste_achats_mois.SetObjects([la for la in lignes_achat])
+        
+        achats = Achat.select().where((Achat.adherent == self.adherent) &
+                                      (Achat.date >= date_mois) &
+                                      (Achat.date < date_mois_suivant)).order_by(Achat.date.asc())
+        
+        total_mois = 0
+
+        for a in achats:
+            total_mois += a.total
+        
+        self.label_total_mois.SetLabel(u"Total des achats du mois : %.2f €" % total_mois)
+
+    
     def OnDetailsAchat(self, event):
         self.achat = self.liste_achats.GetSelectedObject()
         self.liste_lignes_achat.SetObjects([la for la in self.achat.lignes_achat])
-
-    def OnRechercheNom(self, event):
-        print "Event handler `OnRechercheNom' not implemented!"
-        event.Skip()
-
-    def OnRechercheDate(self, event):
-        print "Event handler `OnRechercheDate' not implemented!"
-        event.Skip()
-

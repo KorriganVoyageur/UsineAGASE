@@ -342,7 +342,7 @@ class GestionReferents(wx.Panel):
         msgbox = wx.MessageBox(u"Enlever %s de la liste des référent pour %s ?" % (adherent.prenom_nom, self.fournisseur.nom), "Suppression", wx.YES_NO | wx.ICON_QUESTION)
 
         if msgbox == wx.YES:
-            referent = Referent.select().where((Referent.fournisseur == self.fournisseur) and (Referent.adherent == adherent)).get()
+            referent = Referent.select().where((Referent.fournisseur == self.fournisseur) & (Referent.adherent == adherent)).get()
             referent.delete_instance()
 
             self.liste_referents.RemoveObject(adherent)

@@ -79,7 +79,7 @@ class FicheAchat(wx.Panel):
 
     def __set_values(self):
         try:
-            produits = Produit.select().where(Produit.retrait == False or
+            produits = Produit.select().where((Produit.retrait == False) |
                                               (Produit.retrait == True and Produit.stock > 0))
             self.liste_produits.SetObjects([p for p in produits])
             self.liste_produits.AutoSizeColumns()

@@ -1,28 +1,42 @@
-'''
-Created on 22 oct. 2012
+import wx
 
-@author: herve
-'''
+class MyFrame(wx.Frame):
 
-from peewee import *
+    def __init__(self, parent):
 
-db = SqliteDatabase(':memory:', autocommit=False)
+        wx.Frame.__init__(self, parent, -1, "LabelBook Demo")
+
+        # Possible values for Tab placement are INB_TOP, INB_BOTTOM, INB_RIGHT, INB_LEFT
+
+        solid = wx.EmptyBitmap(200,50,-1)
+        croix = wx.Bitmap("../../icons/16x16/ajouter.ico")
+        dc = wx.MemoryDC()
+        dc.SelectObject(solid)
+        """solidbrush = wx.Brush(wx.Colour(75,75,75),wx.SOLID)
+        solidpen = wx.Pen(wx.Colour(75,75,75),wx.SOLID)
+        dc.SetBrush(solidbrush)
+        dc.SetPen(solidpen)
+        dc.DrawRectangle(0, 0, 200, 50)
+        dc.SetTextForeground(wx.Colour(255, 255, 255))"""
+        dc.DrawText("Coucou", 0,  0)
+        dc.SelectObject(wx.NullBitmap)
+
+        """self.checked = wx.Image('buttonchecked.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        dc = wx.MemoryDC()
+        dc.SelectObject(self.checked)
+        dc.SetTextForeground(wx.Colour(200, 255, 0))
+        dc.DrawText(line.rstrip(), 30,  17)
+        dc.SelectObject(wx.NullBitmap)"""
+
+        self.b = wx.BitmapButton(self, 800, solid)
 
 
-class User(Model):
-    username = CharField()
+# our normal wxApp-derived class, as usual
 
-    class Meta:
-        database = db
+app = wx.PySimpleApp()
 
+frame = MyFrame(None)
+app.SetTopWindow(frame)
+frame.Show()
 
-class Tweet(Model):
-    user = ForeignKeyField(User, related_name='tweets')
-    message = TextField()
-
-    class Meta:
-        database = db
-
-db.connect()
-User.create_table()
-Tweet.create_table()
+app.MainLoop()

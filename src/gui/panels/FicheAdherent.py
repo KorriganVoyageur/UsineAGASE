@@ -436,7 +436,7 @@ class GestionFournisseurs(wx.Panel):
         msgbox = wx.MessageBox(u"Supprimer le fournisseur \"%s\" ?" % fournisseur.nom, "Suppression", wx.YES_NO | wx.ICON_QUESTION)
 
         if msgbox == wx.YES:
-            referent = Referent.select().where((Referent.adherent == self.adherent) and (Referent.fournisseur == fournisseur)).get()
+            referent = Referent.select().where((Referent.adherent == self.adherent) & (Referent.fournisseur == fournisseur)).get()
             referent.delete_instance()
 
             self.liste_fournisseurs.RemoveObject(fournisseur)

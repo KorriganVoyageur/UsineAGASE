@@ -494,8 +494,8 @@ class Achat(BaseModel):
     adherent = ForeignKeyField(Adherent, related_name='achats')
 
     def __repr__(self):
-        _repr = "<Achat fait par %s le %s>" % (self.adherent.prenom_nom,
-                                               self.date.strftime(u"%d/%m/%Y à %H:%M:%S"))
+        _repr = u"<Achat fait par %s le %s>" % (self.adherent.prenom_nom,
+                                               self.date.strftime(u"%d/%m/%Y a %H:%M:%S"))
         return _repr.encode("utf-8")
 
     @property
@@ -944,7 +944,7 @@ class Inventaire(BaseModel):
     is_valide = BooleanField(default=False)
 
     def initialisation(self):
-        for produit in Produit.select().where(Produit.retrait == False or (Produit.retrait == True and Produit.stock > 0)):
+        for produit in Produit.select().where((Produit.retrait == False) | (Produit.retrait == True and Produit.stock > 0)):
             LigneInventaire.create(inventaire=self, produit=produit, stock_theorique=produit.stock)
 
     def __repr__(self):
