@@ -274,6 +274,9 @@ class ObjectListView(wx.ListCtrl):
 
         if self.sortable:
             self.EnableSorting()
+        else:
+            #Resolution d'un bug
+            self.SetImageLists()
 
         # NOTE: On Windows, ListCtrl's don't trigger EVT_LEFT_UP :(
 
