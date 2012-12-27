@@ -6,7 +6,7 @@
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
-from peewee import SqliteDatabase, Model
+from peewee import SqliteDatabase, Model,QueryCompiler
 from peewee import TextField, CharField, IntegerField, BooleanField, \
                    DateField, DateTimeField, FloatField, \
                    PrimaryKeyField, ForeignKeyField
@@ -293,7 +293,7 @@ class CotisationType(BaseModel):
         return _repr.encode("utf-8")
 
     class Meta:
-        db_table = 'cotisations'
+        db_table = 'cotisation_types'
 
 
 class Adherent(BaseModel):
@@ -362,6 +362,43 @@ class Adherent(BaseModel):
                 return True
 
         return False
+
+    @property
+    def cotisation_du_mois(self):
+        """Retourne la cotisation du mois, si elle a déjà été payée"""
+        mois = date(date.today().year, date.today().month, 1)
+        mois_suivant = mois + relativedelta(months = +1)
+        
+        try:
+            return self.cotisations.where((Cotisation.date >= mois) &
+                                          (Cotisation.date < mois_suivant)).get()  
+        except Cotisation.DoesNotExist:
+            return None
+        
+    def paye_cotisation_du_mois(self):
+        cotisation = self.cotisation_du_mois
+
+        if not cotisation:
+            cotisation = Cotisation.create(adherent=self, montant=self.cotisation_type.prix, date=date.today())
+        
+        return cotisation
+
+    @property
+    def solde(self):
+        total_achats = 0
+        total_cotisations = 0
+        total_credits = 0
+        
+        for achat in self.achats:
+            total_achats += achat.total
+
+        for cotisation in self.cotisations:
+            total_cotisations += cotisation.montant
+
+        for credit in self.credits:
+            total_credits += credit.montant
+
+        return total_credits - total_achats - total_cotisations
     
     @property
     def fournisseurs(self):
@@ -396,10 +433,10 @@ class Cotisation(BaseModel):
     date = DateField()
     montant = FloatField()
 
-    adherent = ForeignKeyField(Adherent, related_name='adhesions')
+    adherent = ForeignKeyField(Adherent, related_name='cotisations')
 
     def __repr__(self):
-        _repr = u"<Cotisation de %.2f € le %s>" % (self.montant, self.date.strftime("%d-%m-%y"))
+        _repr = u"<Cotisation de %.2f € le %s>" % (self.montant, self.date.strftime("%d-%m-%Y"))
         return _repr.encode("utf-8")
 
 
@@ -476,7 +513,7 @@ class Credit(BaseModel):
     montant = FloatField()
     cheque = CharField()
 
-    adherent = ForeignKeyField(Adherent, related_name='Credits')
+    adherent = ForeignKeyField(Adherent, related_name='credits')
 
     def __repr__(self):
         _repr = "<Credit de %f € pour %s le %s>" % (self.montant,
@@ -510,6 +547,12 @@ class Achat(BaseModel):
             total += la.prix_total
 
         return total
+    
+    def is_achat_du_jour(self):
+        if self.date.date() == date.today():
+            return True
+        else:
+            return False
 
     class Meta:
         db_table = 'achats'

@@ -5,7 +5,7 @@ import wx
 from model.model import Adherent, Achat, LigneAchat, Credit, Cotisation, DATABASE
 from gui.panels.FicheAchat import FicheAchat
 from lib.objectlistview import ObjectListView, ColumnDefn, Filter
-from datetime import datetime
+from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
 
@@ -20,8 +20,8 @@ class GestionAchats(wx.Panel):
 
         self.label_total_achats = wx.StaticText(self, -1, "Total des achats du mois en cours :")
         self.label_total_achats_v = wx.StaticText(self, -1, u"XX.XX €")
-        self.label_credit = wx.StaticText(self, -1, u"Crédit :")
-        self.label_credit_v = wx.StaticText(self, -1, u"XX.XX €")
+        self.label_solde = wx.StaticText(self, -1, u"Solde :")
+        self.label_solde_v = wx.StaticText(self, -1, u"XX.XX €")
         self.static_line = wx.StaticLine(self, -1)
         self.bouton_ajout_achat = wx.Button(self, -1, "Nouvel achat")
         self.bouton_ajout_credit = wx.Button(self, -1, "Nouveau paiement")
@@ -66,13 +66,18 @@ class GestionAchats(wx.Panel):
         #Page "Achats"
         self.panel_page_achats = wx.Panel(self.notebook_achats, -1)
 
-        self.liste_achats =  ObjectListView(self.panel_page_achats, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.liste_achats =  ObjectListView(self.panel_page_achats, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL, sortable=False)
         
         self.liste_achats.SetColumns([
             ColumnDefn("Date", "left", -1, "date", stringConverter="Achat du %d-%m-%y", minimumWidth=100),
             ColumnDefn(u"Total", "right", -1, "total", stringConverter=u"%.2f €", minimumWidth=100, isSpaceFilling=True)
         ])
+        
+        def rowFormatterAchats(listItem, achat):
+            if achat.is_achat_du_jour() and (achat == self.liste_achats.GetObjectAt(0)):
+                listItem.SetBackgroundColour("#CCFFCC")
 
+        self.liste_achats.rowFormatter = rowFormatterAchats
         self.liste_achats.AutoSizeColumns()
 
         self.liste_lignes_achat = ObjectListView(self.panel_page_achats, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
@@ -90,6 +95,23 @@ class GestionAchats(wx.Panel):
 
         self.notebook_achats.AddPage(self.panel_page_achats, "Achats")
 
+        #Page "Cotisations"
+        self.panel_page_cotisations = wx.Panel(self.notebook_achats, -1)
+        self.liste_cotisations = ObjectListView(self.panel_page_cotisations, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        
+        def cotisation_mois_annee(cotisation):
+            mois = ['Janvier',u'Février','Mars','Avril','Mai','Juin','Juillet',u'Août','Septembre','Octobre','Novembre',u'Décembre']
+            
+            return "%s %i" % (mois[cotisation.date.month-1], cotisation.date.year)
+        
+        self.liste_cotisations.SetColumns([
+            ColumnDefn("Cotisation de", "left", -1, cotisation_mois_annee, minimumWidth=100),
+            ColumnDefn(u"Réglée le", "left", -1, "date", minimumWidth=100),
+            ColumnDefn(u"Montant", "left", -1, "montant", stringConverter=u"%.2f €", minimumWidth=70, isSpaceFilling=True)
+        ])
+        
+        self.notebook_achats.AddPage(self.panel_page_cotisations, "Cotisations")
+        
         #Page "Paiements"
         self.panel_page_credits = wx.Panel(self.notebook_achats, -1)
         self.liste_credits = wx.ListCtrl(self.panel_page_credits, -1, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
@@ -104,11 +126,16 @@ class GestionAchats(wx.Panel):
         self.combobox_choix_mois.Bind(wx.EVT_COMBOBOX, self.OnChoixMois)
         self.bouton_ajout_achat.Bind(wx.EVT_BUTTON, self.OnAjoutAchat)
         self.liste_achats.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnDetailsAchat)
+        self.liste_achats.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnModifAchat)
         #self.liste_achats_mois.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnDetailsAchat)
         self.liste_achats_mois.Disable()
 
     def __set_properties(self):
-        pass
+        self.label_solde_v.SetLabel(u"%.2f €" % self.adherent.solde)
+        if self.adherent.solde >= 0:
+            self.label_solde_v.SetForegroundColour("#00AA00")
+        else:
+            self.label_solde_v.SetForegroundColour("#DD0000")
 
     def __set_valeurs(self):
         try:
@@ -138,12 +165,16 @@ class GestionAchats(wx.Panel):
 
             achats = Achat.select().where(Achat.adherent == self.adherent).order_by(Achat.date.desc())            
             self.liste_achats.SetObjects([a for a in achats])
+            
+            cotisations = Cotisation.select().where(Cotisation.adherent == self.adherent).order_by(Cotisation.date.desc())            
+            self.liste_cotisations.SetObjects([c for c in cotisations])
 
         except BaseException as ex:
             print ex
 
     def __do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_panel_page_cotisations = wx.BoxSizer(wx.HORIZONTAL)
         sizer_panel_page_credits = wx.BoxSizer(wx.HORIZONTAL)
         sizer_panel_page_achats = wx.BoxSizer(wx.HORIZONTAL)
         sizer_panel_page_achat_mois = wx.BoxSizer(wx.VERTICAL)
@@ -153,8 +184,8 @@ class GestionAchats(wx.Panel):
         grid_infos = wx.GridSizer(2, 2, 5, 5)
         grid_infos.Add(self.label_total_achats, 0, 0, 0)
         grid_infos.Add(self.label_total_achats_v, 0, 0, 0)
-        grid_infos.Add(self.label_credit, 0, 0, 0)
-        grid_infos.Add(self.label_credit_v, 0, 0, 0)
+        grid_infos.Add(self.label_solde, 0, 0, 0)
+        grid_infos.Add(self.label_solde_v, 0, 0, 0)
 
         sizer.Add(grid_infos, 0, wx.ALL, 5)
         sizer.Add(self.static_line, 0, wx.ALL | wx.EXPAND, 10)
@@ -180,6 +211,9 @@ class GestionAchats(wx.Panel):
 
         self.panel_page_achats.SetSizer(sizer_panel_page_achats)
 
+        sizer_panel_page_cotisations.Add(self.liste_cotisations, 1, wx.ALL | wx.EXPAND, 5)
+        self.panel_page_cotisations.SetSizer(sizer_panel_page_cotisations)
+
         sizer_panel_page_credits.Add(self.liste_credits, 1, wx.ALL | wx.EXPAND, 5)
         self.panel_page_credits.SetSizer(sizer_panel_page_credits)
 
@@ -189,15 +223,36 @@ class GestionAchats(wx.Panel):
         sizer.Fit(self)
 
     def OnAjoutAchat(self, event):
-        self.Hide()
+        fiche_achat = FicheAchat(self)
+        
+        x, y = self.GetSize()
+        fiche_achat.SetSize((x-50, y-50))
 
-        fiche_achat = FicheAchat(self.GetParent())
+        if fiche_achat.ShowModal() == wx.ID_SAVE:
+            achats = Achat.select().where(Achat.adherent == self.adherent).order_by(Achat.date.desc())            
+            self.liste_achats.SetObjects([a for a in achats])
+            self.liste_achats.AutoSizeColumns()
 
-        sizer = self.GetParent().GetSizer()
-        sizer.Add(fiche_achat, 1, wx.EXPAND)
-        self.GetParent().SetSizer(sizer)
-        self.GetParent().Layout()
-    
+            self.liste_lignes_achat.DeleteAllItems()
+            self.OnChoixMois(event)
+
+    def OnModifAchat(self, event):
+        achat = self.liste_achats.GetSelectedObject()
+        #vérification que c'est bien le dernier achat
+        if self.liste_achats.GetSelectedObject() == self.liste_achats.GetObjectAt(0):
+            if achat.is_achat_du_jour():
+                fiche_achat = FicheAchat(self, achat=self.liste_achats.GetSelectedObject())
+                
+                x, y = self.GetSize()
+                fiche_achat.SetSize((x-50, y-50))
+                
+                if fiche_achat.ShowModal() == wx.ID_SAVE:
+                    achat = fiche_achat.GetAchat()
+        
+                    self.OnDetailsAchat(event)
+                    self.OnChoixMois(event)
+                    self.liste_achats.RefreshObject(achat)
+
     def OnChoixMois(self, event):
         """Mets à jour la liste des achats du mois sélectionné """
         date = self.combobox_choix_mois.GetClientData(self.combobox_choix_mois.GetSelection())

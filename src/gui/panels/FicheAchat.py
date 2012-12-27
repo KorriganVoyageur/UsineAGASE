@@ -3,6 +3,7 @@
 
 import wx
 import wx.lib.agw.genericmessagedialog as GMD
+import wx.lib.rcsizer  as rcs
 
 from lib.objectlistview import ObjectListView, ColumnDefn, Filter
 from textwrap import fill
@@ -17,28 +18,38 @@ from datetime import datetime
 ###########################################################################
 
 
-class FicheAchat(wx.Panel):
+class FicheAchat(wx.Dialog):
+    """Permet d'éditer un achat. Dialog modal"""
+    
     def __init__(self, parent, achat=None, adherent=None):
-        wx.Panel.__init__(self, parent, style=wx.TAB_TRAVERSAL)
+        wx.Dialog.__init__(self, parent,  style=wx.DEFAULT_DIALOG_STYLE)
 
         if achat == None:
             if adherent == None:
                 #TODO : à modifier quand le système d'identification sera en place
                 adherent = Adherent.select().where(Adherent.id == 1).get()
-        
+
             achat = Achat.create(adherent=adherent)
 
         self.achat = achat
 
-        self.sizer_achat_staticbox = wx.StaticBox(self, -1, "Achat")
-        self.sizer_fournisseur_produits_staticbox = wx.StaticBox(self, -1, "Liste des produits")
+        self.sizer_infos_staticbox = wx.StaticBox(self, -1, "Informations")
+
+        self.label_credit_restant = wx.StaticText(self, -1, u"Crédit restant")
+        self.label_cotisation = wx.StaticText(self, -1, u"Cotisation du mois")
+        self.label_cotisation_payee = wx.StaticText(self, -1, u"- Payée le xx-xx-xx")
+        self.label_total_achats = wx.StaticText(self, -1, "Total des achats")
+        self.label_solde = wx.StaticText(self, -1, u"Solde après achat")
+        self.label_credit_restant_valeur = wx.StaticText(self, -1, u"0.00 ¤")
+        self.label_cotisation_valeur = wx.StaticText(self, -1, u"0.00 ¤")
+        self.label_total_achats_valeur = wx.StaticText(self, -1, u"0.00 ¤", style=wx.ALIGN_RIGHT)
+        self.label_solde_valeur = wx.StaticText(self, -1, u"0.00 ¤")
+
+        self.sizer_liste_produits_staticbox = wx.StaticBox(self, -1, "Liste des produits")
         self.label_titre_achat = wx.StaticText(self, -1, "Achat pour ")
         self.search_nom = wx.SearchCtrl(self, -1, "")
         self.liste_produits = ObjectListView(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.label_total = wx.StaticText(self, -1, "Total des achats :")
-        self.label_total_valeur = wx.StaticText(self, -1, u"0.00 ¤", style=wx.ALIGN_RIGHT)
-        self.liste_lignes_achat = ObjectListView(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.bouton_sauvegarder = wx.Button(self, -1, "Enregistrer l'achat")
+
 
         self.liste_produits.SetColumns([
             ColumnDefn("Ref GASE", "left", -1, "ref_GASE", minimumWidth=70),
@@ -47,6 +58,9 @@ class FicheAchat(wx.Panel):
         ])
         self.liste_produits.SetEmptyListMsg("Aucun produits")
         self.liste_produits.AutoSizeColumns()
+
+        self.sizer_achat_staticbox = wx.StaticBox(self, -1, "Achat")
+        self.liste_lignes_achat = ObjectListView(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 
         self.liste_lignes_achat.SetColumns([
             ColumnDefn("Ref GASE", "left", -1, "produit.ref_GASE", minimumWidth=70),
@@ -58,22 +72,42 @@ class FicheAchat(wx.Panel):
         self.liste_lignes_achat.AutoSizeColumns()
 
         self.liste_lignes_achat.SetEmptyListMsg(u"Produits achetés")
+        
+        self.bouton_sauvegarder = wx.Button(self, wx.ID_SAVE)
+        self.bouton_annuler = wx.Button(self, wx.ID_CANCEL)
 
         self.__set_properties()
         self.__set_values()
         self.__do_layout()
 
-        self.Bind(wx.EVT_BUTTON, self.OnSauvegarder, self.bouton_sauvegarder)
-        self.Bind(wx.EVT_TEXT, self.OnFilter, self.search_nom)
-        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnAjoutProduit, self.liste_produits)
-        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnModifProduit, self.liste_lignes_achat)
-        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy, self)
+        self.bouton_sauvegarder.Bind(wx.EVT_BUTTON, self.OnSauvegarder)
+        self.bouton_annuler.Bind(wx.EVT_BUTTON, self.OnClose)
+        self.search_nom.Bind(wx.EVT_TEXT, self.OnFilter)
+        self.liste_produits.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnAjoutProduit)
+        self.liste_lignes_achat.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnModifProduit)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
     def __set_properties(self):
         self.label_titre_achat.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
-        self.sizer_fournisseur_produits_staticbox.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
-        self.label_total.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
+        self.sizer_infos_staticbox.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
+        self.sizer_liste_produits_staticbox.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
         self.sizer_achat_staticbox.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
+        
+        font_italic = self.label_cotisation.GetFont()
+        font_italic.SetStyle(wx.ITALIC)
+    
+        self.label_cotisation_payee.SetFont(font_italic)
+        
+        """self.label_credit_restant.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
+        self.label_cotisation.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
+        self.label_total_achats.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
+        self.label_solde.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
+        self.label_credit_restant_valeur.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
+        self.label_cotisation_valeur.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
+        self.label_total_achats_valeur.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
+        self.label_solde_valeur.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))"""
+        
+        self.label_credit_restant.SetMinSize((130, -1))
         self.search_nom.SetMinSize((200, -1))        
         self.search_nom.SetDescriptiveText("Recherche sur le nom")
 
@@ -85,66 +119,91 @@ class FicheAchat(wx.Panel):
             self.liste_produits.AutoSizeColumns()
             
             self.liste_lignes_achat.SetObjects([la for la in self.achat.lignes_achat])
-            self.label_total_valeur.SetLabel(u"%.2f ¤" % self.achat.total)
+            
+            credit_restant = self.achat.adherent.solde - self.achat.total
+            
+            self.label_credit_restant_valeur.SetLabel(u"%.2f ¤" % credit_restant)
+
+            if credit_restant >= 0:
+                self.label_credit_restant_valeur.SetForegroundColour("#00AA00")
+            else:
+                self.label_credit_restant_valeur.SetForegroundColour("#DD0000")
+
+            cotisation_du_mois = self.achat.adherent.cotisation_du_mois
+            
+            if cotisation_du_mois:
+                self.label_cotisation_valeur.SetLabel("\\")
+                self.label_cotisation_payee.SetLabel(u"- %.2f ¤, payée le %s" % (cotisation_du_mois.montant, cotisation_du_mois.date.strftime("%d-%m-%Y")))
+            else:
+                self.label_cotisation_valeur.SetLabel(u"%.2f ¤" % self.achat.adherent.cotisation_type.prix)
+                self.label_cotisation_payee.Hide()
+
+            self.__update_total()
 
         except BaseException as ex:
             print ex
 
 
-    def __do_layout(self):
-        # begin wxGlade: NouvelleAchat.__do_layout
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer_boutons = wx.BoxSizer(wx.HORIZONTAL)
-        
-        sizer_achat = wx.StaticBoxSizer(self.sizer_achat_staticbox, wx.VERTICAL)
-        sizer_fournisseur_produits = wx.StaticBoxSizer(self.sizer_fournisseur_produits_staticbox, wx.HORIZONTAL)
-        sizer_ligne_total = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_liste_produits = wx.BoxSizer(wx.VERTICAL)
+    def __do_layout(self): 
+        grid_sizer_infos = rcs.RowColSizer()
 
-        """sizer_entete = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_entete.Add(self.label_titre_achat, 1, wx.EXPAND, 0)
-        sizer_entete.Add(self.bouton_infos_fournisseur, 0, wx.EXPAND, 0)
-        sizer.Add(sizer_entete, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 10)"""
+        grid_sizer_infos.Add(self.label_credit_restant, row=0, col=0)
+        grid_sizer_infos.Add(self.label_credit_restant_valeur, flag=wx.ALIGN_RIGHT, row=0, col=1)
+        grid_sizer_infos.Add(self.label_cotisation, row=1, col=0)
+        grid_sizer_infos.Add(self.label_cotisation_valeur, flag=wx.ALIGN_RIGHT, row=1, col=1)
+        grid_sizer_infos.Add(self.label_cotisation_payee, row=2, col=0, colspan=2)
+        grid_sizer_infos.Add(self.label_total_achats, row=3, col=0)
+        grid_sizer_infos.Add(self.label_total_achats_valeur, flag=wx.ALIGN_RIGHT, row=3, col=1)
+        grid_sizer_infos.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), flag=wx.EXPAND, row=4, col=0, colspan=2) 
+        grid_sizer_infos.Add(self.label_solde, row=5, col=0)
+        grid_sizer_infos.Add(self.label_solde_valeur, flag=wx.ALIGN_RIGHT, row=5, col=1)
         
-        sizer.Add(self.label_titre_achat, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
+        sizer_infos = wx.StaticBoxSizer(self.sizer_infos_staticbox, wx.VERTICAL)
+        sizer_infos.Add(grid_sizer_infos, 1, wx.ALL|wx.EXPAND, 5)
 
+        sizer_liste_produits = wx.StaticBoxSizer(self.sizer_liste_produits_staticbox, wx.VERTICAL)
         sizer_liste_produits.Add(self.search_nom, 0, wx.BOTTOM, 6)
         sizer_liste_produits.Add(self.liste_produits, 1, wx.EXPAND, 0)
-        sizer_fournisseur_produits.Add(sizer_liste_produits, 1, wx.EXPAND, 0)
-        sizer.Add(sizer_fournisseur_produits, 1, wx.TOP|wx.EXPAND, 10)
+        
+        sizer_infos_produits = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_infos_produits.Add(sizer_infos, 0, wx.EXPAND|wx.RIGHT, 5)
+        sizer_infos_produits.Add(sizer_liste_produits, 1, wx.EXPAND, 0)
 
-        sizer_ligne_total.Add(self.label_total, 0, wx.EXPAND|wx.RIGHT, 20)
-        sizer_ligne_total.Add(self.label_total_valeur, 0, wx.ALIGN_RIGHT, 0)
-
-        sizer_achat.Add(sizer_ligne_total, 0, wx.ALIGN_RIGHT|wx.BOTTOM, 6)
+        sizer_achat = wx.StaticBoxSizer(self.sizer_achat_staticbox, wx.VERTICAL)
         sizer_achat.Add(self.liste_lignes_achat, 1, wx.EXPAND, 0)
-        sizer.Add(sizer_achat, 1, wx.EXPAND, 0)
 
-        sizer_boutons.Add(self.bouton_sauvegarder, 0, 0, 0)
+        sizer_boutons = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_boutons.Add(self.bouton_sauvegarder, 1)
+        sizer_boutons.Add((10,10), 1, wx.EXPAND)
+        sizer_boutons.Add(self.bouton_annuler, 1)
+        
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.label_titre_achat, 0, wx.BOTTOM|wx.EXPAND, 10)
+        sizer.Add(sizer_infos_produits, 1, wx.TOP|wx.BOTTOM|wx.EXPAND, 5)
+        sizer.Add(sizer_achat, 1, wx.EXPAND, 0) 
         sizer.Add(sizer_boutons, 0, wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, 6)
-        self.SetSizer(sizer)
-        sizer.Fit(self)
-        # end wxGlade
+        
+        sizer_dialog = wx.BoxSizer(wx.VERTICAL)
+        sizer_dialog.Add(sizer, 1, wx.ALL|wx.EXPAND, 10)
+        
+        self.SetSizer(sizer_dialog)
+        sizer_dialog.Fit(self)
 
     def __update_total(self):
-        self.label_total_valeur.SetLabel(u"%.2f ¤" % self.achat.total)
-        self.Layout()
+        solde = self.achat.adherent.solde
 
-    def SetFournisseur(self, fournisseur):
-        self.achat.fournisseur = fournisseur
+        self.label_total_achats_valeur.SetLabel(u"%.2f ¤" % self.achat.total)
+        self.label_solde_valeur.SetLabel(u"%.2f ¤" % solde)
 
-        self.label_titre_achat.SetLabel("Achat pour " + self.achat.fournisseur.nom)
-
-        try:
-            produits = Produit.select().where((Produit.fournisseur == fournisseur) &
-                                              (Produit.retrait == False))
-            self.liste_produits.SetObjects([p for p in produits])
-            self.liste_produits.AutoSizeColumns()
-
-        except BaseException as ex:
-            print ex
+        if solde >= 0:
+            self.label_solde_valeur.SetForegroundColour("#00AA00")
+        else:
+            self.label_solde_valeur.SetForegroundColour("#DD0000")
 
         self.Layout()
+
+    def GetAchat(self):
+        return self.achat
 
     def OnFilter(self, event):
         filtre_texte = Filter.TextSearch(self.liste_produits, text=self.search_nom.GetValue())
@@ -201,28 +260,30 @@ class FicheAchat(wx.Panel):
         dlg.Destroy()
 
     def OnSauvegarder(self, event):
-        try:
-            self.achat.date = datetime.today()
-            self.achat.save()
-            DATABASE.commit()
-            wx.MessageBox(u"L'achat a été enregistré", "Notification")
-        except BaseException as ex:
-            wx.MessageBox(u"Problème lors de l'enregistrement : %s" % ex, "Erreur")
+        cotisation = self.achat.adherent.paye_cotisation_du_mois()
+        cotisation.save()            
+            
+        self.achat.date = datetime.today()
+        self.achat.save()
+        DATABASE.commit()
+        wx.MessageBox(u"L'achat a été enregistré", "Notification")
+        self.EndModal(wx.ID_SAVE)
 
-    def OnDestroy(self, event):
+    def OnClose(self, event):
         dlg = wx.MessageDialog(parent=None, message=u"Voulez vous sauvegarder cet achat ?",
                                caption=u"Sauvegarde de l'achat", style=wx.YES_NO|wx.ICON_QUESTION)
     
         if dlg.ShowModal() == wx.ID_YES:
+            cotisation = self.achat.adherent.paye_cotisation_du_mois()
+            cotisation.save()
+
             self.achat.date = datetime.today()
             self.achat.save()
             DATABASE.commit()
+            self.EndModal(wx.ID_SAVE)
         else:
             DATABASE.rollback()
-    
-        dlg.Destroy()
-
-        event.Skip()
+            self.EndModal(wx.ID_CANCEL)
 
 
 ###########################################################################
@@ -247,7 +308,6 @@ class DialogChoixQuantite(wx.Dialog):
         self.__set_properties()
         self.__set_valeurs()
         self.__do_layout()
-        # end wxGlade
 
     def __set_properties(self):
         self.text_quantite.SetMinSize((80, -1))
