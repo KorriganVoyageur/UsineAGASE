@@ -89,14 +89,14 @@ class FicheAdherent(wx.Panel):
 
     def OnEnregistre(self, event):
         if self.Validate():
+            self.panel_adherent.Enregistre()
             DATABASE.commit()
+            
+            event.Skip()
         else:
             control = wx.Window.FindFocus()
             self.notebook.ChangeSelection(0)
             control.SetFocus()
-            DATABASE.rollback()
-            
-        event.Skip()
 
     def OnClose(self, event):
         DATABASE.rollback()
@@ -223,7 +223,7 @@ class FicheAdherentBase(wx.Panel):
     def GetAdherent(self):
         return self.adherent
 
-    def OnEnregistre(self, event):
+    def Enregistre(self):
         if self.Validate():
             self.adherent.nom = self.text_Nom.GetValue()
             self.adherent.prenom = self.text_Prenom.GetValue()

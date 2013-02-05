@@ -80,26 +80,18 @@ class FicheFournisseur(wx.Panel):
 
     def OnEnregistre(self, event):
         if self.Validate():
+            self.panel_fournisseur.Enregistre()
             DATABASE.commit()
+            
+            event.Skip()
         else:
             control = wx.Window.FindFocus()
             self.notebook.ChangeSelection(0)
             control.SetFocus()
-            DATABASE.rollback()
-            
-        event.Skip()
 
     def OnClose(self, event):
         DATABASE.rollback()
         event.Skip()
-
-
-
-
-
-
-
-
 
 
 ###########################################################################
@@ -138,22 +130,14 @@ class FicheFournisseurBase(wx.Panel):
         self.label_Couleur = wx.StaticText(self, -1, "Couleur :")
         self.button_Couleur = wx.Button(self, -1, "Choix de la couleur")
         self.text_Couleur = wx.TextCtrl(self, -1, "", style=wx.TE_READONLY)
-        self.button_ok = wx.Button(self, wx.ID_OK, "")
-        self.button_annuler = wx.Button(self, wx.ID_CANCEL, "Annuler")
 
         self.__set_properties()
         self.__do_layout()
         self.__set_valeurs()
 
-        self.button_ok.Bind(wx.EVT_BUTTON, self.OnEnregistre)
         self.button_Couleur.Bind(wx.EVT_BUTTON, self.selectionCouleur)
 
-        self.Bind(wx.EVT_CLOSE, self.OnClose, self)
-        self.Bind(wx.EVT_BUTTON, self.OnClose, self.button_annuler)
-        # end wxGlade
-
     def __set_properties(self):
-        # begin wxGlade: FicheFournisseur.__set_properties
         self.text_Nom.SetMinSize((300, -1))
         self.text_Nom.SetMaxLength(40)
         self.text_CodePostal.SetMinSize((80, -1))
@@ -165,7 +149,6 @@ class FicheFournisseurBase(wx.Panel):
     def __do_layout(self):
         # begin wxGlade: FicheFournisseur.__do_layout
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer_boutons = wx.BoxSizer(wx.HORIZONTAL)
         grid_sizer = wx.FlexGridSizer(8, 2, 6, 6)
         sizer_Couleur = wx.BoxSizer(wx.HORIZONTAL)
         grid_sizer.Add(self.label_Nom, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -191,10 +174,6 @@ class FicheFournisseurBase(wx.Panel):
         sizer_Couleur.Add(self.button_Couleur, 0, 0, 0)
         grid_sizer.Add(sizer_Couleur, 1, wx.EXPAND, 0)
         sizer.Add(grid_sizer, 0, wx.ALL|wx.EXPAND, 10)
-        sizer_boutons.Add(self.button_ok, 0, 0, 0)
-        sizer_boutons.Add((80, 23), 0, 0, 0)
-        sizer_boutons.Add(self.button_annuler, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0)
-        sizer.Add(sizer_boutons, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 10)
         self.SetSizer(sizer)
         self.Fit()
         self.Layout()
@@ -232,7 +211,7 @@ class FicheFournisseurBase(wx.Panel):
 
         dlg.Destroy()
 
-    def OnEnregistre(self, event):
+    def Enregistre(self):
         if self.Validate():
             self.fournisseur.nom = self.text_Nom.GetValue()
             self.fournisseur.adresse = self.text_Adresse.GetValue()
@@ -247,8 +226,6 @@ class FicheFournisseurBase(wx.Panel):
 
             with DATABASE.transaction():
                 self.fournisseur.save()
-
-            event.Skip()
 
     def OnClose(self, event):
         #session.rollback()
