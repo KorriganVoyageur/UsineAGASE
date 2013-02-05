@@ -532,6 +532,7 @@ class Achat(BaseModel):
 
     date = DateTimeField(default=datetime.today())
     cout_supplementaire = FloatField(default=0)
+    cout_supplementaire_commentaire = TextField(default="")
 
     adherent = ForeignKeyField(Adherent, related_name='achats')
 
@@ -1008,6 +1009,12 @@ class Inventaire(BaseModel):
                 break
             
         return pret
+    
+    def validation(self):
+        if self.pret_a_valider():
+            for li in self.lignes_inventaire:
+                li.produit.stock = li.stock_reel
+                li.produit.save()
     
     @property
     def produits(self):

@@ -83,10 +83,8 @@ class FicheInventaire(wx.Panel):
                 
         #self.liste_lignes_inventaire.rowFormatter = RFLignesInventaire
 
-
         self.bouton_enregistrer = wx.Button(self, wx.ID_SAVE, "Enregistrer")
         self.bouton_valider = wx.Button(self, wx.ID_OK, u"Valider l'inventaire")
-        self.bouton_annuler = wx.Button(self, wx.ID_CANCEL, "Annuler")
 
         self.__set_properties()
         self.__set_valeurs()
@@ -109,6 +107,12 @@ class FicheInventaire(wx.Panel):
         self.search_nom.SetMinSize((200, -1))
         self.search_nom.SetDescriptiveText("Recherche sur le nom")
         self.sizer_inventaire_staticbox.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
+        
+        if self.inventaire.is_valide:
+            self.text_commentaire.Disable()
+            self.bouton_ajout_produit.Hide()
+            self.bouton_enregistrer.Hide()
+            self.bouton_valider.Hide()
 
     def __set_valeurs(self):
         self.label_titre_inventaire.SetLabel("Inventaire du %s" % self.inventaire.date.strftime("%d/%m/%y"))
@@ -147,8 +151,6 @@ class FicheInventaire(wx.Panel):
         sizer_bouton.Add((20, 20), 1, 0, 0)
         sizer_bouton.Add(self.bouton_valider, 0, 0, 0)
         sizer_bouton.Add((20, 20), 1, 0, 0)
-        sizer_bouton.Add(self.bouton_annuler, 0, 0, 0)
-        sizer_bouton.Add((20, 20), 1, 0, 0)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.label_titre_inventaire, 0, wx.ALL|wx.EXPAND, 10)
@@ -175,7 +177,8 @@ class FicheInventaire(wx.Panel):
         dlg.Destroy()
 
     def OnModifStock(self, event):
-        self.liste_lignes_inventaire.StartCellEdit(self.liste_lignes_inventaire.GetFocusedRow(), 4)
+        if not self.inventaire.is_valide:
+            self.liste_lignes_inventaire.StartCellEdit(self.liste_lignes_inventaire.GetFocusedRow(), 4)
 
     def OnEnregistrer(self, event):
         if self.Validate():
@@ -199,22 +202,26 @@ class FicheInventaire(wx.Panel):
                 self.inventaire.date = date.today()
 
                 with DATABASE.transaction():
+                    self.inventaire.validation()
                     self.inventaire.save()
+
+                self.__set_properties()
 
                 event.Skip()
 
     def OnDestroy(self, event):
-        dlg = wx.MessageDialog(parent=None, message=u"Voulez vous sauvegarder l'inventaire ?",
-                               caption=u"Sauvegarde de la inventaire", style=wx.YES_NO|wx.ICON_QUESTION)
-
-        if dlg.ShowModal() == wx.ID_YES:
-            self.inventaire.date = date.today()
-            self.inventaire.save()
-            DATABASE.commit()
-        else:
-            DATABASE.rollback()
-
-        dlg.Destroy()
+        if not self.inventaire.is_valide:
+            dlg = wx.MessageDialog(parent=None, message=u"Voulez vous sauvegarder l'inventaire ?",
+                                   caption=u"Sauvegarde de l'inventaire", style=wx.YES_NO|wx.ICON_QUESTION)
+    
+            if dlg.ShowModal() == wx.ID_YES:
+                self.inventaire.date = date.today()
+                self.inventaire.save()
+                DATABASE.commit()
+            else:
+                DATABASE.rollback()
+    
+            dlg.Destroy()
 
         event.Skip()
         
