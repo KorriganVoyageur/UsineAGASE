@@ -200,7 +200,7 @@ class EmailValidator(BaseValidator):
         if self.win.IsEnabled():
             result = False
             self.text = self.win.GetValue()
-            if re.match("^[a-zA-Z0-9._%-+]+@[a-zA-Z0-9._%-]+.[a-zA-Z]{2,6}$", self.text) or len(self.text) == 0:
+            if re.match("^[a-zA-Z0-9._%-]+@[a-zA-Z0-9._%-]+.[a-zA-Z]{2,6}$", self.text) or len(self.text) == 0:
                 result = True
             else:
                 result = False
