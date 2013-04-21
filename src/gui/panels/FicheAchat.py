@@ -8,7 +8,8 @@ import wx.lib.rcsizer  as rcs
 from lib.objectlistview import ObjectListView, ColumnDefn, Filter
 from textwrap import fill
 
-from classes.Validators import GenericTextValidator, VALIDATE_INT
+from classes.Validators import GenericTextValidator, VALIDATE_INT, VALIDATE_FLOAT
+from classes.TextCtrlDescriptive import TextCtrlDescriptive
 
 from model.model import Achat, LigneAchat, Produit, Adherent, DATABASE
 from datetime import datetime
@@ -43,13 +44,15 @@ class FicheAchat(wx.Dialog):
         self.label_credit_restant_valeur = wx.StaticText(self, -1, u"0.00 ¤")
         self.label_cotisation_valeur = wx.StaticText(self, -1, u"0.00 ¤")
         self.label_total_achats_valeur = wx.StaticText(self, -1, u"0.00 ¤", style=wx.ALIGN_RIGHT)
+        self.label_cout_supplementaire = wx.StaticText(self, -1, u"Coût supplémentaire")
+        self.text_cout_supplementaire = wx.TextCtrl(self, -1, validator=GenericTextValidator(VALIDATE_FLOAT, obligatoire=False))
+        self.text_cout_supplementaire_commentaire = TextCtrlDescriptive(self, -1, style=wx.TE_MULTILINE)
         self.label_solde_valeur = wx.StaticText(self, -1, u"0.00 ¤")
 
         self.sizer_liste_produits_staticbox = wx.StaticBox(self, -1, "Liste des produits")
         self.label_titre_achat = wx.StaticText(self, -1, "Achat pour ")
         self.search_nom = wx.SearchCtrl(self, -1, "")
         self.liste_produits = ObjectListView(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-
 
         self.liste_produits.SetColumns([
             ColumnDefn("Ref GASE", "left", -1, "ref_GASE", minimumWidth=70),
@@ -77,11 +80,13 @@ class FicheAchat(wx.Dialog):
         self.bouton_annuler = wx.Button(self, wx.ID_CANCEL)
 
         self.__set_properties()
+        self.__set_tooltips()
         self.__set_values()
         self.__do_layout()
 
         self.bouton_sauvegarder.Bind(wx.EVT_BUTTON, self.OnSauvegarder)
         self.bouton_annuler.Bind(wx.EVT_BUTTON, self.OnClose)
+        self.text_cout_supplementaire.Bind(wx.EVT_TEXT, self.OnChangeCoutSupp)
         self.search_nom.Bind(wx.EVT_TEXT, self.OnFilter)
         self.liste_produits.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnAjoutProduit)
         self.liste_lignes_achat.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnModifProduit)
@@ -107,9 +112,14 @@ class FicheAchat(wx.Dialog):
         self.label_total_achats_valeur.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
         self.label_solde_valeur.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))"""
         
+        self.text_cout_supplementaire.SetMinSize((60,-1))
+        self.text_cout_supplementaire_commentaire.SetMinSize((-1, 50))
         self.label_credit_restant.SetMinSize((130, -1))
         self.search_nom.SetMinSize((200, -1))        
         self.search_nom.SetDescriptiveText("Recherche sur le nom")
+        
+    def __set_tooltips(self):
+        self.text_cout_supplementaire_commentaire.SetToolTip(wx.ToolTip(u"Description des coûts supplémentaires"))
 
     def __set_values(self):
         try:
@@ -137,6 +147,10 @@ class FicheAchat(wx.Dialog):
             else:
                 self.label_cotisation_valeur.SetLabel(u"%.2f ¤" % self.achat.adherent.cotisation_type.prix)
                 self.label_cotisation_payee.Hide()
+            
+            print self.achat.cout_supplementaire
+            self.text_cout_supplementaire.SetValue("%.2f" % float(self.achat.cout_supplementaire))
+            self.text_cout_supplementaire_commentaire.SetValue(self.achat.cout_supplementaire_commentaire)
 
             self.__update_total()
 
@@ -154,9 +168,12 @@ class FicheAchat(wx.Dialog):
         grid_sizer_infos.Add(self.label_cotisation_payee, row=2, col=0, colspan=2)
         grid_sizer_infos.Add(self.label_total_achats, row=3, col=0)
         grid_sizer_infos.Add(self.label_total_achats_valeur, flag=wx.ALIGN_RIGHT, row=3, col=1)
-        grid_sizer_infos.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), flag=wx.EXPAND, row=4, col=0, colspan=2) 
-        grid_sizer_infos.Add(self.label_solde, row=5, col=0)
-        grid_sizer_infos.Add(self.label_solde_valeur, flag=wx.ALIGN_RIGHT, row=5, col=1)
+        grid_sizer_infos.Add(self.label_cout_supplementaire, flag=wx.ALIGN_CENTER_VERTICAL, row=4, col=0)
+        grid_sizer_infos.Add(self.text_cout_supplementaire, flag=wx.ALIGN_RIGHT, row=4, col=1)
+        grid_sizer_infos.Add(self.text_cout_supplementaire_commentaire, flag=wx.EXPAND, row=5, col=0, colspan=2) 
+        grid_sizer_infos.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), flag=wx.EXPAND, row=6, col=0, colspan=2) 
+        grid_sizer_infos.Add(self.label_solde, row=7, col=0)
+        grid_sizer_infos.Add(self.label_solde_valeur, flag=wx.ALIGN_RIGHT, row=7, col=1)
         
         sizer_infos = wx.StaticBoxSizer(self.sizer_infos_staticbox, wx.VERTICAL)
         sizer_infos.Add(grid_sizer_infos, 1, wx.ALL|wx.EXPAND, 5)
@@ -204,6 +221,16 @@ class FicheAchat(wx.Dialog):
 
     def GetAchat(self):
         return self.achat
+    
+    def OnChangeCoutSupp(self, event):
+        try:
+            #PAS FINI !!
+            if self.text_cout_supplementaire.GetValue() != "":
+                self.achat.cout_supplementaire = float(self.text_cout_supplementaire.GetValue())
+                self.text_cout_supplementaire.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+                self.__update_total()
+        except ValueError:
+            self.text_cout_supplementaire.SetBackgroundColour('#ffcccc')
 
     def OnFilter(self, event):
         filtre_texte = Filter.TextSearch(self.liste_produits, text=self.search_nom.GetValue())
@@ -260,27 +287,27 @@ class FicheAchat(wx.Dialog):
         dlg.Destroy()
 
     def OnSauvegarder(self, event):
-        cotisation = self.achat.adherent.paye_cotisation_du_mois()
-        cotisation.save()            
-            
-        self.achat.date = datetime.today()
-        self.achat.save()
-        DATABASE.commit()
-        wx.MessageBox(u"L'achat a été enregistré", "Notification")
-        self.EndModal(wx.ID_SAVE)
+        if self.Validate():
+            cotisation = self.achat.adherent.paye_cotisation_du_mois()
+            cotisation.save()            
+                
+            self.achat.date = datetime.today()
+            if self.text_cout_supplementaire.GetValue():
+                self.achat.cout_supplementaire = float(self.text_cout_supplementaire.GetValue())
+            else:
+                self.achat.cout_supplementaire = 0
+            self.achat.cout_supplementaire_commentaire = self.text_cout_supplementaire_commentaire.GetValue()
+            self.achat.save()
+            DATABASE.commit()
+            wx.MessageBox(u"L'achat a été enregistré", "Notification")
+            self.EndModal(wx.ID_SAVE)
 
     def OnClose(self, event):
         dlg = wx.MessageDialog(parent=None, message=u"Voulez vous sauvegarder cet achat ?",
                                caption=u"Sauvegarde de l'achat", style=wx.YES_NO|wx.ICON_QUESTION)
     
         if dlg.ShowModal() == wx.ID_YES:
-            cotisation = self.achat.adherent.paye_cotisation_du_mois()
-            cotisation.save()
-
-            self.achat.date = datetime.today()
-            self.achat.save()
-            DATABASE.commit()
-            self.EndModal(wx.ID_SAVE)
+            self.OnSauvegarder(event)
         else:
             DATABASE.rollback()
             self.EndModal(wx.ID_CANCEL)
