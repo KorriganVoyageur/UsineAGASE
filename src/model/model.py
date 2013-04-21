@@ -988,13 +988,18 @@ class Inventaire(BaseModel):
     Classe Inventaire
     """
 
+    #Valeur théorique et réel du stock à revoir
+    
     date = DateField(default=date.today())
     commentaire = TextField(default=u"Ajouter ici toutes les choses à notre sur cet inventaire")
     is_valide = BooleanField(default=False)
+    valeur_stock_theorique = FloatField(default=0)
+    valeur_stock_reel = FloatField(default=0)
 
     def initialisation(self):
         for produit in Produit.select().where((Produit.retrait == False) | (Produit.retrait == True and Produit.stock > 0)):
             LigneInventaire.create(inventaire=self, produit=produit, stock_theorique=produit.stock)
+            #self.valeur_stock_theorique += produit.stock * produit.prix_achat_TTC
 
     def __repr__(self):
         _repr = u"<Inventaire du %s>" % self.date.strftime("%d/%m/%Y")
@@ -1015,6 +1020,7 @@ class Inventaire(BaseModel):
             for li in self.lignes_inventaire:
                 li.produit.stock = li.stock_reel
                 li.produit.save()
+                #self.valeur_stock_reel += li.stock_reel * li.produit.prix_achat_TTC
     
     @property
     def produits(self):

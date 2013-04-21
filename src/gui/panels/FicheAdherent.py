@@ -13,7 +13,7 @@ from classes.Validators import GenericTextValidator, EmailValidator, LoginValida
 ###########################################################################
 
 class FicheAdherent(wx.Panel):
-    def __init__(self, parent, adherent):
+    def __init__(self, parent, adherent=None):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, style=wx.TAB_TRAVERSAL)
 
         #permet de faire un validate sur tout les panels

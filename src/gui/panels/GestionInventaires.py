@@ -28,7 +28,9 @@ class GestionInventaires(wx.Panel):
 
         self.liste_inventaires.SetColumns([
             ColumnDefn("Date", "left", 200, "date", stringConverter="Inventaire du %d-%m-%Y", minimumWidth=200),
-            ColumnDefn("Statut", "left", -1, "is_valide", stringConverter=is_valide, isSpaceFilling=True)
+            ColumnDefn("Statut", "left", -1, "is_valide", stringConverter=is_valide),
+            ColumnDefn(u"Valeur du stock théorique", "left", 100, "valeur_stock_theorique", stringConverter=u"%.2f ¤"),
+            ColumnDefn(u"Valeur du stock réel", "left", 100, "valeur_stock_reel", stringConverter=u"%.2f ¤", isSpaceFilling=True)
         ])
 
         def rowFormatterLI(listItem, commande):

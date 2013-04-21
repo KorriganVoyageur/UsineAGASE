@@ -34,7 +34,8 @@ class FicheInventaire(wx.Panel):
         self.search_nom = wx.SearchCtrl(self, -1, "")
         self.label_commentaire = wx.StaticText(self, -1, "Commentaires :")
         self.text_commentaire = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
-        self.bouton_ajout_produit = buttons.GenBitmapTextButton(self, -1, wx.Bitmap("../icons/16x16/ajouter.ico"), u" Ajouter un produit non listé", style=wx.BORDER_NONE)
+        #self.bouton_ajout_produit = buttons.GenBitmapTextButton(self, -1, wx.Bitmap("../icons/16x16/ajouter.ico"), u" Ajouter un produit non listé", style=wx.BORDER_NONE)
+        self.bouton_ajout_produit = wx.Button(self, -1, u"Ajouter un produit non listé")
         self.liste_lignes_inventaire = ObjectListView(self, -1,
                                                       style=wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL)
 

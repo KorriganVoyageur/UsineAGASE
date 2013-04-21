@@ -12,7 +12,7 @@ from lib.objectlistview import ObjectListView, ColumnDefn
 ###########################################################################
 
 class FicheFournisseur(wx.Panel):
-    def __init__(self, parent, fournisseur):
+    def __init__(self, parent, fournisseur=None):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, style=wx.TAB_TRAVERSAL)
 
         #permet de faire un validate sur tout les panels
