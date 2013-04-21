@@ -10,7 +10,7 @@ from textwrap import fill
 from classes.Validators import GenericTextValidator, VALIDATE_INT
 
 from model.model import Commande, LigneCommande, Produit, DATABASE
-from datetime import date
+from datetime import date, datetime
 
 ###########################################################################
 ## Class FicheCommande
@@ -30,6 +30,8 @@ class FicheCommande(wx.Panel):
         self.sizer_fournisseur_produits_staticbox = wx.StaticBox(self, -1, "Liste des produits")
         self.label_titre_commande = wx.StaticText(self, -1, "Commande pour ")
         self.bouton_infos_fournisseur = wx.Button(self, -1, "Afficher les infos du fournisseur")
+        self.label_date_commande = wx.StaticText(self, -1, "Date de la commande :")
+        self.datepicker_date_commande = wx.DatePickerCtrl(self, -1)
         self.label_FiltreRecherche = wx.StaticText(self, -1, "Recherche sur le nom :")
         self.text_ctrl_FiltreRecherche = wx.TextCtrl(self, -1, "")
         self.liste_produits = ObjectListView(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
@@ -81,6 +83,11 @@ class FicheCommande(wx.Panel):
     def __set_values(self):
         if self.commande.fournisseur:
             self.SetFournisseur(self.commande.fournisseur)
+            
+            date = wx.DateTime()
+            date.Set(self.commande.date_commande.day, self.commande.date_commande.month-1, self.commande.date_commande.year)
+            self.datepicker_date_commande.SetValue(date)
+
             self.liste_lignes_commande.SetObjects([lc for lc in self.commande.lignes_commande])
             self.label_total_valeur.SetLabel(u"%.2f ¤" % self.commande.total_commande_TTC())
 
@@ -89,6 +96,7 @@ class FicheCommande(wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_boutons = wx.BoxSizer(wx.HORIZONTAL)
         sizer_entete = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_date_commande= wx.BoxSizer(wx.HORIZONTAL)
         sizer_commande = wx.StaticBoxSizer(self.sizer_commande_staticbox, wx.VERTICAL)
         sizer_fournisseur_produits = wx.StaticBoxSizer(self.sizer_fournisseur_produits_staticbox, wx.HORIZONTAL)
         sizer_ligne_total = wx.BoxSizer(wx.HORIZONTAL)
@@ -98,6 +106,10 @@ class FicheCommande(wx.Panel):
         sizer_entete.Add(self.label_titre_commande, 1, wx.EXPAND, 0)
         sizer_entete.Add(self.bouton_infos_fournisseur, 0, wx.EXPAND, 0)
         sizer.Add(sizer_entete, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
+
+        sizer_date_commande.Add(self.label_date_commande, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 6)
+        sizer_date_commande.Add(self.datepicker_date_commande, 0, 0, 0)
+        sizer.Add(sizer_date_commande, 0, wx.EXPAND, 0)
 
         sizer_fitre_recherche.Add(self.label_FiltreRecherche, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 6)
         sizer_fitre_recherche.Add(self.text_ctrl_FiltreRecherche, 0, 0, 0)
@@ -216,7 +228,11 @@ class FicheCommande(wx.Panel):
 
     def OnSauvegarder(self, event):
         try:
-            self.commande.date_commande = date.today()
+            date_commande = self.datepicker_date_commande.GetValue()
+            print datetime(date_commande.GetYear(), date_commande.GetMonth()+1, date_commande.GetDay())
+
+            self.commande.date_commande = datetime(date_commande.GetYear(), date_commande.GetMonth()+1, date_commande.GetDay())
+            
             self.commande.save()
             DATABASE.commit()
             wx.MessageBox(u"La commande a été enregistrée", "Notification")
@@ -229,9 +245,7 @@ class FicheCommande(wx.Panel):
                                    caption=u"Sauvegarde de la commande", style=wx.YES_NO|wx.ICON_QUESTION)
 
             if dlg.ShowModal() == wx.ID_YES:
-                self.commande.date_commande = date.today()
-                self.commande.save()
-                DATABASE.commit()
+                self.OnSauvegarder(None)
             else:
                 DATABASE.rollback()
 
