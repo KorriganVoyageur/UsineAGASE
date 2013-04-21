@@ -3744,7 +3744,8 @@ class ColumnDefn(object):
 
         # Try attribute access
         try:
-            attr = getattr(modelObject, munger, None)
+            #attr = getattr(modelObject, munger, None)
+            attr = operator.attrgetter(munger)(modelObject)
             if attr is not None:
                 try:
                     return attr()
