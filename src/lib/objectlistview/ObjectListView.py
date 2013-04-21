@@ -8,14 +8,6 @@
 # License:      wxWindows license
 #----------------------------------------------------------------------------
 # Change log:
-# 2009-06-09  JPP   - AutoSizeColumns() now updates space filling columns
-#                   - FastObjectListView.RepopulateList() now uses Freeze/Thaw
-#                   - Fixed bug with virtual lists being clearws when scrolled vertically
-# 2008-12-16  JPP   - Removed flicker from RefreshObject() on FastObjectListView and GroupListView
-# 2008-12-01  JPP   - Handle wierd toggle check box on selection when there is no selection
-#                   - Fixed bug in RefreshObjects() when the list is empty
-# 2008-11-30  JPP   - Fixed missing variable bug in CancelCellEdit()
-# v1.2
 # 2008/09/02  JPP   - Added BatchedUpdate adaptor
 #                   - Improved speed of selecting and refreshing by keeping a map
 #                     of objects to indicies
@@ -270,13 +262,8 @@ class ObjectListView(wx.ListCtrl):
 
         wx.ListCtrl.__init__(self, *args, **kwargs)
 
-        #self.SetBackgroundColour(wx.Colour(255, 250, 205))
-
         if self.sortable:
             self.EnableSorting()
-        else:
-            #Resolution d'un bug
-            self.SetImageLists()
 
         # NOTE: On Windows, ListCtrl's don't trigger EVT_LEFT_UP :(
 
@@ -300,7 +287,7 @@ class ObjectListView(wx.ListCtrl):
         else:
             StaticText = wx.StaticText
 
-        self.stEmptyListMsg = StaticText(self, -1, "Cette liste est vide",
+        self.stEmptyListMsg = StaticText(self, -1, "This list is empty",
             wx.Point(0, 0), wx.Size(0, 0), wx.ALIGN_CENTER | wx.ST_NO_AUTORESIZE | wx.FULL_REPAINT_ON_RESIZE)
         self.stEmptyListMsg.Hide()
         self.stEmptyListMsg.SetForegroundColour(wx.LIGHT_GREY)
@@ -567,7 +554,6 @@ class ObjectListView(wx.ListCtrl):
         """
         Resize our auto sizing columns to match the data
         """
-        self.Freeze()
         for (iCol, col) in enumerate(self.columns):
             if col.width == wx.LIST_AUTOSIZE:
                 self.SetColumnWidth(iCol, wx.LIST_AUTOSIZE)
@@ -578,8 +564,6 @@ class ObjectListView(wx.ListCtrl):
                 if colWidth != boundedWidth:
                     self.SetColumnWidth(iCol, boundedWidth)
 
-        self._ResizeSpaceFillingColumns()
-        self.Thaw()
 
     def Check(self, modelObject):
         """
@@ -628,7 +612,7 @@ class ObjectListView(wx.ListCtrl):
     def _GetValuesAsMultiList(self, objects):
         """
         Return a list of lists of the string of the aspects of the given objects
-        """        
+        """
         cols = self.columns[:]
         if self.checkStateColumn is not None:
             cols.remove(self.checkStateColumn)
@@ -733,8 +717,6 @@ class ObjectListView(wx.ListCtrl):
             item = self.GetItem(i)
             self._FormatOneItem(item, i, self.GetObjectAt(i))
             self.SetItem(item)
-            
-        self.Refresh()
 
 
     def _FormatOneItem(self, item, index, model):
@@ -876,17 +858,7 @@ class ObjectListView(wx.ListCtrl):
         # Calculate how much free space is available in the control
         totalFixedWidth = sum(self.GetColumnWidth(i) for (i, x) in enumerate(self.columns)
                               if not x.isSpaceFilling)
-        #if wx.Platform == "__WXGTK__":
-        #    clientSize = self.MainWindow.GetClientSizeTuple()[0]
-        #else:
-        #    clientSize = self.GetClientSizeTuple()[0]
-        #freeSpace = max(0, clientSize - totalFixedWidth)
-        #Ajout éviter le bug des scrollbars
-        
-        if (self.GetViewRect()[3] + self.GetWindowBorderSize()[0]) >= self.GetVirtualSizeTuple()[1]:
-            freeSpace = max(0, self.GetClientSizeTuple()[0] - totalFixedWidth - wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X))
-        else:
-            freeSpace = max(0, self.GetClientSizeTuple()[0] - totalFixedWidth)
+        freeSpace = max(0, self.GetClientSizeTuple()[0] - totalFixedWidth)
 
         # Calculate the total number of slices the free space will be divided into
         totalProportion = sum(x.freeSpaceProportion for x in self.columns if x.isSpaceFilling)
@@ -1549,8 +1521,6 @@ class ObjectListView(wx.ListCtrl):
         Toggles the checkedness of the selected modelObjects.
         """
         selection = self.GetSelectedObjects()
-        if not selection:
-            return
         newValue = not self.IsChecked(selection[0])
         for x in selection:
             self.SetCheckState(x, newValue)
@@ -1665,8 +1635,7 @@ class ObjectListView(wx.ListCtrl):
         #    we should edit on double click and this is a single click, OR
         #    we should edit on single click and this is a double click,
         # THEN we don't try to start a cell edit operation
-        
-        if evt.AltDown or evt.ControlDown() or evt.ShiftDown():
+        if evt.m_altDown or evt.m_controlDown or evt.m_shiftDown:
             return
         if self.cellEditMode == self.CELLEDIT_NONE:
             return
@@ -1785,7 +1754,6 @@ class ObjectListView(wx.ListCtrl):
         """
         Sort the actual items in the list now, according to the current column and order
         """
-        
         sortColumn = self.GetSortColumn()
         if not sortColumn:
             return
@@ -2056,7 +2024,6 @@ class ObjectListView(wx.ListCtrl):
         editor.SetDimensions(*bounds)
 
         colour = self.GetItemBackgroundColour(rowIndex)
-        
         if colour.IsOk():
             editor.SetBackgroundColour(colour)
         else:
@@ -2106,7 +2073,6 @@ class ObjectListView(wx.ListCtrl):
         Return the first non-null value in the given column, processing
         at most maxRows rows
         """
-
         column = self.columns[colIndex]
         for i in range(min(self.GetItemCount(), maxRows)):
             model = self.GetObjectAt(i)
@@ -2161,9 +2127,8 @@ class ObjectListView(wx.ListCtrl):
         """
         # Tell the world that the user cancelled the edit
         (rowIndex, subItemIndex) = self.cellBeingEdited
-        rowModel = self.GetObjectAt(rowIndex)
         evt = OLVEvent.CellEditFinishingEvent(self, rowIndex, subItemIndex,
-                                              rowModel,
+                                              self.GetObjectAt(rowIndex),
                                               self.cellEditor.GetValue(),
                                               self.cellEditor,
                                               True)
@@ -2260,7 +2225,7 @@ class AbstractVirtualObjectListView(ObjectListView):
         Refresh the display of the given modelObject
         """
         # We only have a hammer so everything looks like a nail
-        self.RefreshObjects([modelObject])
+        self.RefreshObjects()
 
 
     def RefreshObjects(self, aList=None):
@@ -2269,7 +2234,7 @@ class AbstractVirtualObjectListView(ObjectListView):
         """
         # We can only refresh everything
         self.lastGetObjectIndex = -1
-        self.RefreshItems(0, max(0, self.GetItemCount()-1))
+        self.RefreshItems(0, self.GetItemCount()-1)
         #self.Refresh()
 
 
@@ -2510,18 +2475,14 @@ class FastObjectListView(AbstractVirtualObjectListView):
         Completely rebuild the contents of the list control
         """
         self.lastGetObjectIndex = -1
-        self.Freeze()
-        try:
-            self._SortObjects()
-            self._BuildInnerList()
-            wx.ListCtrl.DeleteAllItems(self)
-            self.SetItemCount(len(self.innerList))
-            self.RefreshObjects()
+        self._SortObjects()
+        self._BuildInnerList()
+        self.SetItemCount(len(self.innerList))
+        self.RefreshObjects()
 
-            # Auto-resize once all the data has been added
-            self.AutoSizeColumns()
-        finally:
-            self.Thaw()
+        # Auto-resize once all the data has been added
+        self.AutoSizeColumns()
+
 
     def RefreshObjects(self, aList=None):
         """
@@ -3633,7 +3594,7 @@ class ColumnDefn(object):
             return value.strftime(self.stringConverter)
 
         # By default, None is changed to an empty string.
-        if not converter and value is None:
+        if not converter and not value:
             return ""
 
         fmt = converter or "%s"
@@ -3783,8 +3744,7 @@ class ColumnDefn(object):
 
         # Try attribute access
         try:
-            #attr = getattr(modelObject, munger, None)
-            attr = operator.attrgetter(munger)(modelObject)
+            attr = getattr(modelObject, munger, None)
             if attr is not None:
                 try:
                     return attr()
@@ -4053,7 +4013,7 @@ class BatchedUpdate(object):
             self.freezeUntil = time.clock() + self.updatePeriod
             return
 
-        # TODOU: We should check that none of the model objects is already in the list
+        # TODO: We should check that none of the model objects is already in the list
         self.objectsToAdd.extend(modelObjects)
 
         # Since we are adding these objects, we must no longer remove them
